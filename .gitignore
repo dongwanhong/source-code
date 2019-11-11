@@ -3,6 +3,9 @@
 # dependencies
 **/node_modules
 
+# production
+dist
+
 # misc
 .DS_Store
 npm-debug.log*
@@ -18,3 +21,8 @@ yarn-error.log*
 *.njsproj
 *.sln
 *.log
+
+# other
+www/*
+!www/favicon.ico
+!www/index.html

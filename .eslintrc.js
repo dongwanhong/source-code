@@ -17,6 +17,8 @@ module.exports = {
     ecmaVersion: 2018
   },
   rules: {
-    'prettier/prettier': 'error'
+    'prettier/prettier': 'error',
+    // fix: eslint should be listed in the project's dependencies, not devDependencies
+    'import/no-extraneous-dependencies': ['error', { devDependencies: true }]
   }
 }

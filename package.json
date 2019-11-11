@@ -5,18 +5,22 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "live-server --host=localhost --port=3000 --open=www",
+    "dev": "live-server --host=localhost --port=3000 --open=www",
     "htmlhint": "htmlhint src/**/*.html",
     "stylelint": "stylelint '**/*.css' '**/*.less'",
     "stylelint:fix": "npm run stylelint -- --fix",
     "lint": "eslint . --ext .js",
     "lint:fix": "npm run lint -- --fix",
     "prettier": "prettier --check '**/*.{html,css,less,md,json}'",
-    "prettier:fix": "prettier --write '*.{html,css,less,md,json}'",
+    "prettier:fix": "prettier --write '**/*.{html,css,less,md,json}'",
     "markdownlint": "markdownlint **/*.md --ignore node_modules",
     "markdownlint:fix": "markdownlint **/*.md --fix --ignore node_modules",
+    "start": "webpack-dev-server --config build/webpack.dev.conf.js",
+    "build:dev": "webpack --config build/webpack.prod.conf.js",
+    "build": "cross-env NODE_ENV=production webpack --config build/webpack.prod.conf.js",
     "commit": "git cz",
-    "deploy": "gh-pages -d www"
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
   "repository": {
     "type": "git",
@@ -30,27 +34,54 @@
   },
   "homepage": "https://github.com/dongwanhong/source-code/slide-unlock",
   "devDependencies": {
+    "@babel/core": "^7.7.2",
+    "@babel/plugin-proposal-class-properties": "^7.7.0",
+    "@babel/plugin-proposal-decorators": "^7.7.0",
+    "@babel/plugin-transform-runtime": "^7.6.2",
+    "@babel/preset-env": "^7.7.1",
     "@commitlint/cli": "^8.2.0",
     "@commitlint/config-conventional": "^8.2.0",
     "babel-eslint": "^10.0.3",
+    "babel-loader": "^8.0.6",
+    "clean-webpack-plugin": "^3.0.0",
     "commitizen": "^4.0.3",
+    "cross-env": "^6.0.3",
+    "css-loader": "^3.2.0",
     "cz-conventional-changelog": "^3.0.2",
     "eslint": "^6.6.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-config-prettier": "^6.5.0",
     "eslint-plugin-import": "^2.18.2",
     "eslint-plugin-prettier": "^3.1.1",
+    "file-loader": "^4.2.0",
     "gh-pages": "^2.1.1",
+    "glob": "^7.1.6",
+    "glob-all": "^3.1.0",
+    "html-webpack-plugin": "^3.2.0",
     "htmlhint": "^0.11.0",
     "husky": "^3.0.9",
+    "less": "^3.10.3",
+    "less-loader": "^5.0.0",
     "lint-staged": "^9.4.2",
     "live-server": "^1.2.1",
     "markdownlint": "^0.17.2",
     "markdownlint-cli": "^0.19.0",
+    "mini-css-extract-plugin": "^0.8.0",
+    "optimize-css-assets-webpack-plugin": "^5.0.3",
+    "postcss-loader": "^3.0.0",
     "prettier": "1.19.0",
+    "purify-css": "^1.2.5",
+    "purifycss-webpack": "^0.7.0",
+    "style-loader": "^1.0.0",
     "stylelint": "^11.1.1",
     "stylelint-config-prettier": "^6.0.0",
-    "stylelint-config-standard": "^19.0.0"
+    "stylelint-config-standard": "^19.0.0",
+    "terser-webpack-plugin": "^2.2.1",
+    "url-loader": "^2.2.0",
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.10",
+    "webpack-dev-server": "^3.9.0",
+    "webpack-merge": "^4.2.2"
   },
   "husky": {
     "hooks": {
@@ -80,5 +111,9 @@
     "commitizen": {
       "path": "cz-conventional-changelog"
     }
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.7.2",
+    "autoprefixer": "^9.7.1"
   }
 }
