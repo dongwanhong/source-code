@@ -103,6 +103,8 @@ const rules = [
 module.exports = {
   entry: entryMap,
   output: {
+    // fix: https://github.com/webpack/webpack-dev-server/issues/1591
+    publicPath: 'http://localhost:9000/',
     path: resolve('dist'),
     filename: devMode ? '[name]/main.js' : '[name]/main.[chunkhash:8].js',
     chunkFilename: devMode

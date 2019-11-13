@@ -12,6 +12,7 @@ const devMode = process.env.NODE_ENV !== 'production'
 
 const prodConfig = {
   mode: 'production',
+  devtool: 'source-map',
   optimization: {
     minimizer: [new OptimizeCSSAssetsPlugin(), new TerserJSPlugin()],
     runtimeChunk: 'single',
