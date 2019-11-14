@@ -1,0 +1,7 @@
+{
+  // list of attributes that can not be a lowercase property list
+  "attr-lowercase": [
+    "viewBox",
+    "clipPath"
+  ]
+}
