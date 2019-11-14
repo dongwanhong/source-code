@@ -1,2 +1,5 @@
 # Ignored by default
 /node_modules/*
+
+# production
+dist

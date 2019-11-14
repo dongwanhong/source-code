@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "live-server --host=localhost --port=3000 --open=www",
     "htmlhint": "htmlhint src/**/*.html",
-    "stylelint": "stylelint '**/*.css' '**/*.less'",
+    "stylelint": "stylelint \"**/*.css\" \"**/*.less\"",
     "stylelint:fix": "npm run stylelint -- --fix",
     "lint": "eslint . --ext .js",
     "lint:fix": "npm run lint -- --fix",
