@@ -70,6 +70,15 @@ function getEntries() {
 const { entryMap, htmlPluginArray } = getEntries()
 const rules = [
   {
+    test: /\.(html)$/,
+    use: {
+      loader: 'html-loader',
+      options: {
+        attrs: ['img:src']
+      }
+    }
+  },
+  {
     test: /\.(le|c)ss$/,
     use: [
       devMode ? 'style-loader' : MiniCssExtractPlugin.loader,

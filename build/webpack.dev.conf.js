@@ -1,16 +1,6 @@
 const merge = require('webpack-merge')
 const baseConfig = require('./webpack.base.conf')
 
-const rules = [
-  {
-    test: /\.html$/,
-    use: [
-      // fix: https://stackoverflow.com/questions/33183931/how-to-watch-index-html-using-webpack-dev-server-and-html-webpack-plugin
-      'raw-loader'
-    ]
-  }
-]
-
 const devConfig = {
   mode: 'development',
   devtool: 'cheap-module-eval-source-map',
@@ -30,9 +20,6 @@ const devConfig = {
     historyApiFallback: true,
     quiet: false,
     stats: 'errors-only'
-  },
-  module: {
-    rules
   }
 }
 
