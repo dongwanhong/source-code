@@ -20,5 +20,13 @@ module.exports = {
     'prettier/prettier': 'error',
     // fix: eslint should be listed in the project's dependencies, not devDependencies
     'import/no-extraneous-dependencies': ['error', { devDependencies: true }]
+  },
+  settings: {
+    'import/resolver': {
+      node: {}, // fix: https://github.com/benmosher/eslint-plugin-import/issues/1396
+      webpack: {
+        config: './build/webpack.base.conf.js'
+      }
+    }
   }
 }
