@@ -133,5 +133,13 @@ module.exports = {
         ? '[name]/[id].css'
         : '[name]/[id].[contenthash].css'
     })
-  ]
+  ],
+  resolve: {
+    alias: {
+      '@': resolve('src'),
+      '@utils': '@/utils',
+      '@styles': '@/styles',
+      '@pages': '@/pages'
+    }
+  }
 }
