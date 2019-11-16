@@ -1,5 +1,5 @@
+import '@styles/index.less'
 import './index.less'
-import '../../styles/index.less'
 
 /* eslint-disable global-require */
 if (process.env.NODE_ENV !== 'production') {
