@@ -12,10 +12,9 @@ const devMode = process.env.NODE_ENV !== 'production'
 
 const prodConfig = {
   mode: 'production',
-  devtool: 'source-map',
   optimization: {
     minimizer: [new OptimizeCSSAssetsPlugin(), new TerserJSPlugin()],
-    runtimeChunk: 'single',
+    runtimeChunk: false, // fix: 打包后入口文件的代码不执行
     splitChunks: {
       chunks: 'async',
       name: true,
@@ -54,4 +53,7 @@ const prodConfig = {
   ]
 }
 
-module.exports = merge(baseConfig, devMode ? {} : prodConfig)
+module.exports = merge(
+  baseConfig,
+  devMode ? { devtool: 'source-map' } : prodConfig
+)
