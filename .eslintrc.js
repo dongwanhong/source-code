@@ -19,7 +19,8 @@ module.exports = {
   rules: {
     'prettier/prettier': 'error',
     // fix: eslint should be listed in the project's dependencies, not devDependencies
-    'import/no-extraneous-dependencies': ['error', { devDependencies: true }]
+    'import/no-extraneous-dependencies': ['error', { devDependencies: true }],
+    'no-underscore-dangle': 'off'
   },
   settings: {
     'import/resolver': {
@@ -28,5 +29,20 @@ module.exports = {
         config: './build/webpack.base.conf.js'
       }
     }
-  }
+  },
+  overrides: [
+    {
+      files: ['docs/**/*.js'],
+      rules: {
+        'max-classes-per-file': 'off',
+        'class-methods-use-this': 'off'
+      }
+    },
+    {
+      files: ['src/utils/index.js'],
+      rules: {
+        'class-methods-use-this': 'off'
+      }
+    }
+  ]
 }
