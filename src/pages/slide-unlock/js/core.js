@@ -71,8 +71,7 @@ class SlideUnlock {
    * @returns {void}
    */
   _handleMouseDown(e) {
-    const eve = e || window.e
-    const downx = eve.clientX || e.changedTouches[0].clientX
+    const downx = e.clientX || e.changedTouches[0].clientX
 
     if (e.cancelable) {
       e.preventDefault() // 阻止默认行为

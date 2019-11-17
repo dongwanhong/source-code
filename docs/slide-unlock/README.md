@@ -45,9 +45,7 @@ function $(selectors) {
 ```javascript
 function _h(tagName, propMap = {}, text) {
     const ele = document.createElement(tagName);
-    for (let prop in propMap) {
-        ele.setAttribute(prop, propMap[prop]);
-    }
+    Object.keys(propMap).forEach(prop => ele.setAttribute(prop, propMap[prop]));
     if (text) {
         ele.appendChild(document.createTextNode(text));
     }
@@ -58,13 +56,12 @@ class SlideUnlock {
     constructor(el = "body", options = {}) {
         this.$el = $(el)
         this.$$isSuccess = false
-        this.$options = Object.assign(
-            {
-                tip: "请按住滑块，拖动到最右边",
-                unlockText: "验证成功"
-            },
-            options
-        )
+        this.$options = {
+            tip: '请按住滑块，拖动到最右边',
+            unlockText: '验证成功',
+            duration: 500,
+            ...options
+        }
     }
 
     init() {
@@ -95,8 +92,7 @@ class SlideUnlock {
     }
 
     _handleMouseDown(e) {
-        var eve = e || window.e,
-            downx = eve.clientX
+        const downx = e.clientX
 
         e.target.addEventListener(
             "mousemove",
@@ -119,7 +115,7 @@ class SlideUnlock {
 
 ```javascript
 _handleMouseMove(downx, e) {
-    var info = this.$$block.getBoundingClientRect(),
+    const info = this.$$block.getBoundingClientRect(),
         x = e.clientX,
         y = e.clientY,
         x1 = info.left,
