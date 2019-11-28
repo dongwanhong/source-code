@@ -1,4 +1,21 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* 控制整个滚动条 */
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+body {
+  background-color: #f7f7f9;
+}
+
 a {
+  text-decoration: none;
 
   &:hover {
     text-decoration: none;
@@ -6,14 +23,130 @@ a {
 }
 
 button {
+  display: inline-block;
+  font-size: 1rem;
+  color: white;
+  text-align: center;
+  text-decoration: none;
+  border: none;
+  background-color: #666;
+  cursor: pointer;
 
   &:focus {
     outline: none; // 取消点击时默认出现的蓝色边框
   }
+
+  &.btn {
+    padding: 5px 16px;
+  }
 }
 
-.fork-me {
-  position: fixed;
-  top: 0;
-  right: 0;
+.header {
+  display: flex;
+  justify-content: center;
+  padding: 30px;
+  height: 100px;
+  background-color: #f3f3f3;
+
+  button {
+    width: 100px;
+    background-color: #555;
+
+    &:not(:first-child) {
+      margin-left: 16px;
+    }
+
+    &.disabled {
+      color: #b7b7b7;
+      background-color: #91969a;
+    }
+  }
+}
+
+.tab-content {
+  position: relative;
+  margin: 0 auto;
+  padding: 32px 16px;
+  width: 80%;
+  min-height: calc(100vh - 160px);
+
+  .tab-pane {
+    transition: opacity 1s linear;
+
+    &:not(.show) {
+      display: none;
+    }
+
+    &:not(.fade) {
+      opacity: 0;
+    }
+  }
+
+  .card {
+    border: 1px solid rgba(0, 0, 0, 0.125);
+
+    &:not(:first-child) {
+      margin-top: 1rem;
+    }
+
+    .card-title {
+      margin-bottom: 0;
+      padding: 0.75rem 1.25rem;
+      text-align: center;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+      background-color: rgba(0, 0, 0, 0.03);
+      cursor: pointer;
+    }
+
+    .card-body {
+      overflow: hidden;
+      padding: 1.25rem;
+      transition: all 1s linear;
+    }
+  }
+}
+
+.footer {
+  padding: 0 16px;
+  height: 60px;
+  line-height: 60px;
+  text-align: center;
+  background-color: #f5f5f5;
+
+  a {
+    color: #7b7b7b;
+  }
+}
+
+.gh-icon {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
+  background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4PSIwcHgiIHk9IjBweCIgd2lkdGg9IjQwcHgiIGhlaWdodD0iNDBweCIgdmlld0JveD0iMTIgMTIgNDAgNDAiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMTIgMTIgNDAgNDAiIHhtbDpzcGFjZT0icHJlc2VydmUiPjxwYXRoIGZpbGw9IiMzMzMzMzMiIGQ9Ik0zMiAxMy40Yy0xMC41IDAtMTkgOC41LTE5IDE5YzAgOC40IDUuNSAxNS41IDEzIDE4YzEgMC4yIDEuMy0wLjQgMS4zLTAuOWMwLTAuNSAwLTEuNyAwLTMuMiBjLTUuMyAxLjEtNi40LTIuNi02LjQtMi42QzIwIDQxLjYgMTguOCA0MSAxOC44IDQxYy0xLjctMS4yIDAuMS0xLjEgMC4xLTEuMWMxLjkgMC4xIDIuOSAyIDIuOSAyYzEuNyAyLjkgNC41IDIuMSA1LjUgMS42IGMwLjItMS4yIDAuNy0yLjEgMS4yLTIuNmMtNC4yLTAuNS04LjctMi4xLTguNy05LjRjMC0yLjEgMC43LTMuNyAyLTUuMWMtMC4yLTAuNS0wLjgtMi40IDAuMi01YzAgMCAxLjYtMC41IDUuMiAyIGMxLjUtMC40IDMuMS0wLjcgNC44LTAuN2MxLjYgMCAzLjMgMC4yIDQuNyAwLjdjMy42LTIuNCA1LjItMiA1LjItMmMxIDIuNiAwLjQgNC42IDAuMiA1YzEuMiAxLjMgMiAzIDIgNS4xYzAgNy4zLTQuNSA4LjktOC43IDkuNCBjMC43IDAuNiAxLjMgMS43IDEuMyAzLjVjMCAyLjYgMCA0LjYgMCA1LjJjMCAwLjUgMC40IDEuMSAxLjMgMC45YzcuNS0yLjYgMTMtOS43IDEzLTE4LjFDNTEgMjEuOSA0Mi41IDEzLjQgMzIgMTMuNHoiLz48L3N2Zz4=);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+
+.d-md-block {
+  display: block !important;
+}
+
+.d-md-none {
+  display: none !important;
+}
+
+@media (max-width: 767.98px) {
+
+  .tab-content {
+    width: 100%;
+  }
+
+  .d-md-block {
+    display: none !important;
+  }
+
+  .d-md-none {
+    display: block !important;
+  }
 }

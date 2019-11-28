@@ -8,11 +8,11 @@ import utils from '../../../utils/index'
 class SlideUnlock {
   /**
    * 初始化滑块，处理配置
-   * @param {Element} el 挂载的元素
+   * @param {string} selectors 挂载元素的选择器
    * @param {object} options 配置项
    */
-  constructor(el = 'body', options = {}) {
-    this.$el = utils.$(el)
+  constructor(selectors = 'body', options = {}) {
+    this.$el = utils.$(selectors)
     this.$$isSuccess = false
     this.$options = {
       tip: '请按住滑块，拖动到最右边',

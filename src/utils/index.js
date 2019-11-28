@@ -29,6 +29,18 @@ export default new (class {
   /**
    * @public
    * @method
+   * @name $$
+   * @description 获取返回与指定的选择器组匹配的文档中的元素列表
+   * @param {string} selectors 包含一个或多个要匹配的选择器的 DOM 字符串
+   * @returns {NodeList} 在没有匹配的情况下依然返回空 NodeList
+   */
+  $$(selectors) {
+    return document.querySelectorAll(selectors)
+  }
+
+  /**
+   * @public
+   * @method
    * @name _h
    * @description 创建由 tagName 指定的 HTML 元素
    * @param {string} tagName 指定要创建元素类型的字符串
@@ -53,12 +65,18 @@ export default new (class {
    * @name bindEvents
    * @param {string} events 一个以空格分开的字符串，指定了要绑定的事件
    * @param {function} handler 事件监听器
-   * @param {Element | undefined} element 可选的，绑定事件的元素
+   * @param {Element | Element[] | undefined} elements 可选的，绑定事件的元素
    * @returns {void}
    */
-  bindEvents(events, handler, element = this.$('body')) {
+  bindEvents(events, handler, elements = this.$('body')) {
+    let oElements = elements
     events.split(' ').forEach(event => {
-      element.addEventListener(event, handler, false)
+      if (!oElements.length) {
+        oElements = [oElements]
+      }
+      oElements.forEach(element => {
+        element.addEventListener(event, handler, false)
+      })
     })
   }
 
@@ -101,5 +119,73 @@ export default new (class {
     }
     withThtottle.displayName = `withThtottle(${method.name})`
     return withThtottle
+  }
+
+  /* ===================================== PROJECT ===================================== */
+
+  /**
+   * @public
+   * @method
+   * @name createTab
+   * @description 根据固定 HTML 结构创建 Tab 切换的功能
+   * @returns {void}
+   */
+  createTab() {
+    const ele = this.$('[data-toggle="tab"]')
+    if (!ele) {
+      return
+    }
+    this.bindEvents(
+      'click',
+      e => {
+        const tabPanes = this.$$('.tab-pane')
+        tabPanes.forEach((oEle, index) => {
+          oEle.classList.remove('show', 'fade')
+          if (index === +e.target.value) {
+            oEle.classList.add('show')
+            setTimeout(() => oEle.classList.add('fade'), 100) // 异步避开渲染优化（合并渲染）
+          }
+        })
+      },
+      ele
+    )
+  }
+
+  /**
+   * @public
+   * @method
+   * @name createCard
+   * @description 根据固定 HTML 结构创建 Card 伸缩的功能
+   * @returns {void}
+   */
+  createCard() {
+    const eles = this.$$('[data-toggle="card"]')
+    if (!eles.length) {
+      return
+    }
+    this.bindEvents(
+      'click',
+      e => {
+        const ele = e.target.nextElementSibling
+        const { height } = ele.style
+        if (!height || height === '0px') {
+          if (!ele.oriHeight) {
+            ele.oriHeight = `${ele.getBoundingClientRect().height}px`
+            ele.style.height = ele.oriHeight
+            // 触发第一次点击时的动画
+            if (!height) {
+              setTimeout(() => {
+                ele.style.cssText = 'height: 0px; padding: 0px;'
+              }, 100)
+            }
+          } else {
+            ele.style.cssText = `height: ${ele.oriHeight}; padding: 1.25rem;`
+          }
+        } else {
+          ele.style.cssText = 'height: 0px; padding: 0px;'
+        }
+      },
+      eles
+    )
   }
 })()
