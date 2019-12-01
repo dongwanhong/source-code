@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <meta name="description" content="<%= htmlWebpackPlugin.options.title %>。" />
+  <meta name="author" content="Dong WanHong" />
+  <title><%= htmlWebpackPlugin.options.title %></title>
+  <% htmlWebpackPlugin.options.links.forEach(function(item){ %>
+    <% if (item.href) { %>
+      <link rel="<%= item.rel %>" href="<%= item.href %>" />
+    <% } %>
+  <% }); %>
+</head>
+
+<body>
+  <header class="header" data-toggle="tab">
+    <% htmlWebpackPlugin.options.buttons.forEach(function(item, index){ %>
+      <% if (item) { %>
+        <button value="<%= index %>"><%= item %></button>
+      <% } %>
+    <% }); %>
+  </header>
+  <main role="main">
+    <div class="tab-content">
+      <div class="tab-pane show fade">
+        <%= '\<%= example %\>' %>
+      </div>
+      <div class="tab-pane markdown-body">
+        <%= '\<%= documents %\>' %>
+      </div>
+      <div class="tab-pane">
+        <% htmlWebpackPlugin.options.cards.forEach(function(item, index){ %>
+          <% if (item) { %>
+            <div class="card" data-toggle="card">
+              <div class="card-title"><%= item.name %></div>
+              <% if (index === 0) { %>
+                <div class="card-body markdown-body show">
+                  $%<%= item.path %>%$
+                </div>
+              <% } else { %>
+                <div class="card-body markdown-body">
+                  $%<%= item.path %>%$
+                </div>
+              <% } %>
+            </div>
+          <% } %>
+        <% }); %>
+      </div>
+    </div>
+  </main>
+  <footer class="footer">
+    <a href="https://github.com/dongwanhong/source-code/">
+      <span class="gh-icon"></span>
+      <span>Star (^▽^ ) or Fork me on GitHub</span>
+    </a>
+  </footer>
+  <% htmlWebpackPlugin.options.scripts.forEach(function(item){ %>
+    <% if (item.src) { %>
+      <script type="<%= item.type %>" src="<%= item.src %>" ></script>
+    <% } %>
+  <% }); %>
+</body>
+
+</html>

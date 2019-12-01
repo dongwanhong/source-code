@@ -3,6 +3,8 @@ const path = require('path')
 const glob = require('glob')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const GhPlugins = require('../plugins/gh-plugins')
+const htmlOptions = require('../src/config').articles
 
 const devMode = process.env.NODE_ENV !== 'production'
 
@@ -46,22 +48,41 @@ function getEntries() {
     })
   ]
 
-  files.forEach(file => {
+  files.forEach((file, index) => {
+    const othPages = ['list']
     const name = path
       .dirname(file)
       .split('/')
       .pop()
+    const defaultConfig = {
+      minify: !devMode ? htmlCompressConf : false,
+      filename: `./${name}/index.html`,
+      favicon: resolve('src/favicon.ico'),
+      chunks: [name]
+    }
 
     entryMap[name] = resolve(file)
-    htmlPluginArray.push(
-      new HtmlWebpackPlugin({
-        minify: !devMode ? htmlCompressConf : false,
-        filename: `./${name}/index.html`,
-        template: resolve(`./${path.dirname(file)}/index.html`),
-        favicon: resolve('src/favicon.ico'),
-        chunks: [name]
-      })
-    )
+    if (othPages.includes(name)) {
+      htmlPluginArray.push(
+        new HtmlWebpackPlugin(
+          Object.assign(defaultConfig, {
+            template: resolve(`./${path.dirname(file)}/index.html`)
+          })
+        )
+      )
+    } else {
+      htmlPluginArray.push(
+        new HtmlWebpackPlugin(
+          Object.assign(
+            defaultConfig,
+            {
+              template: resolve('src/config/template.ejs')
+            },
+            htmlOptions[index - 1]
+          )
+        )
+      )
+    }
   })
 
   return { entryMap, htmlPluginArray }
@@ -134,7 +155,8 @@ module.exports = {
       chunkFilename: devMode
         ? '[name]/[id].css'
         : '[name]/[id].[contenthash].css'
-    })
+    }),
+    new GhPlugins()
   ],
   resolve: {
     alias: {
@@ -143,5 +165,8 @@ module.exports = {
       '@styles': '@/styles',
       '@pages': '@/pages'
     }
+  },
+  resolveLoader: {
+    modules: ['node_modules', path.resolve(__dirname, '../loaders')]
   }
 }

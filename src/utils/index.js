@@ -175,14 +175,14 @@ export default new (class {
             // 触发第一次点击时的动画
             if (!height) {
               setTimeout(() => {
-                ele.style.cssText = 'height: 0px; padding: 0px;'
+                ele.style.cssText = 'height: 0px;'
               }, 100)
             }
           } else {
-            ele.style.cssText = `height: ${ele.oriHeight}; padding: 1.25rem;`
+            ele.style.cssText = `height: ${ele.oriHeight};`
           }
         } else {
-          ele.style.cssText = 'height: 0px; padding: 0px;'
+          ele.style.cssText = 'height: 0px;'
         }
       },
       eles
