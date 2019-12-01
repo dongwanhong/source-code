@@ -1,1 +1,585 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name="description" content="原生 JavaScript 实现滑块拖动验证。"><meta name="author" content="Dong WanHong"><title>原生 JavaScript 实现滑块拖动验证</title><link rel="shortcut icon" href="https://dongwanhong.github.io/source-code/favicon.ico"><link href="https://dongwanhong.github.io/source-code/slide-unlock/main.9f285a05061247d6d903.css" rel="stylesheet"></head><body><main role="main"><p><button>重置</button></p></main><aside><a href="https://github.com/dongwanhong/source-code/"><img width="149" height="149" src="https://github.blog/wp-content/uploads/2008/12/forkme_right_white_ffffff.png?resize=149%2C149" class="fork-me" alt="Fork me on GitHub" data-recalc-dims="1"></a></aside><script src="https://dongwanhong.github.io/source-code/slide-unlock/main.6e0248f7.js"></script></body></html>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name="description" content="原生 JavaScript 实现滑块拖动验证。"><meta name="author" content="Dong WanHong"><title>原生 JavaScript 实现滑块拖动验证</title><link rel="stylesheet" href="https://cdn.bootcss.com/github-markdown-css/3.0.1/github-markdown.min.css"><link rel="shortcut icon" href="https://dongwanhong.github.io/source-code/favicon.ico"><link href="https://dongwanhong.github.io/source-code/slide-unlock/main.610bdf1149d6b11108c4.css" rel="stylesheet"></head><body><header class="header" data-toggle="tab"><button value="0">示例</button> <button value="1">文档</button> <button value="2">源码</button></header><main role="main"><div class="tab-content"><div class="tab-pane show fade"><div id="slide-wrapper"></div><p><button class="btn reset">重置</button></p></div><div class="tab-pane markdown-body"><h1><a id="user-content-原生-javascript-实现滑动拖动验证" class="anchor" href="#%E5%8E%9F%E7%94%9F-javascript-%E5%AE%9E%E7%8E%B0%E6%BB%91%E5%8A%A8%E6%8B%96%E5%8A%A8%E9%AA%8C%E8%AF%81" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>原生 JavaScript 实现滑动拖动验证</h1><p>通常，我们在防止用户恶意提交表单的时候，会让用户在提交前完成滑动拖动验证，有时候这也能起到一丝反爬的作用。</p><p>实现滑动验证的方式当然不止一种，这里我们直接使用原生 <code>JavaScript</code> 来实现。</p><h2><a id="user-content-原生实现" class="anchor" href="#%E5%8E%9F%E7%94%9F%E5%AE%9E%E7%8E%B0" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>原生实现</h2><p>通过原生 <code>JavaScript</code> 的实现，主要是通过监听鼠标事件来对 DOM 进行一系列的操作。</p><p>滑块验证的结构主要分为四个部分：轨道、滑块、背景和文案，我们可以使用下面的 HTML 结构来表示。</p><div class="highlight highlight-text-html-basic"><pre>&lt;<span class="pl-ent">div</span> <span class="pl-e">class</span>=<span class="pl-s"><span class="pl-pds">"</span>slide-track<span class="pl-pds">"</span></span>&gt;
+    &lt;<span class="pl-ent">div</span> <span class="pl-e">class</span>=<span class="pl-s"><span class="pl-pds">"</span>slide-bg<span class="pl-pds">"</span></span>&gt;&lt;/<span class="pl-ent">div</span>&gt;
+    &lt;<span class="pl-ent">div</span> <span class="pl-e">class</span>=<span class="pl-s"><span class="pl-pds">"</span>slide-block<span class="pl-pds">"</span></span>&gt;&lt;/<span class="pl-ent">div</span>&gt;
+    &lt;<span class="pl-ent">p</span> <span class="pl-e">class</span>=<span class="pl-s"><span class="pl-pds">"</span>slide-text<span class="pl-pds">"</span></span>&gt;请按住滑块，拖动到最右边&lt;/<span class="pl-ent">p</span>&gt;
+&lt;/<span class="pl-ent">div</span>&gt;</pre></div><p>基本思路就是我们给滑块（<code>.slide-block</code>）添加相应的事件，在按下滑块时记录鼠标的当前位置并添加滑动事件，在滑动过程中根据鼠标的移动来移动滑块的位置和增加背景元素（<code>.slide-bg</code>）的宽度，直到移动到轨道（<code>.slide-track</code>）的末端后，改变文案（<code>.slide-text</code>）来提示成功。</p><h3><a id="user-content-样式" class="anchor" href="#%E6%A0%B7%E5%BC%8F" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>样式</h3><p>在开始写脚本之前可以先来完成一下它们的样式，这让滑块相关的部分看起来更好，也让后面的工作更愉快的进行。</p><div class="highlight highlight-source-css"><pre><span class="pl-c"><span class="pl-c">/*</span> 样式的注意事项 <span class="pl-c">*/</span></span></pre></div><p>样式的写法就不贴了，相信大家一看就懂，而且会有更好的实现。需要的话，也可以在 Github 上找到。</p><h3><a id="user-content-脚本" class="anchor" href="#%E8%84%9A%E6%9C%AC" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>脚本</h3><p>现在开始来实现脚本的内容，首先我们对 <code>document.querySelector</code> 方法进行简单的封装以方便后续操作 DOM 元素。</p><div class="highlight highlight-source-js"><pre><span class="pl-k">function</span> <span class="pl-en">$</span>(<span class="pl-smi">selectors</span>) {
+    <span class="pl-k">return</span> <span class="pl-c1">document</span>.<span class="pl-c1">querySelector</span>(selectors);
+}</pre></div><p>然后通过自定义的 <code>_h</code> 函数我们可以很方便的创建上面的 HTML 结构，并添加到文档中。</p><div class="highlight highlight-source-js"><pre><span class="pl-k">function</span> <span class="pl-en">_h</span>(<span class="pl-smi">tagName</span>, <span class="pl-smi">propMap</span> <span class="pl-k">=</span> {}, <span class="pl-smi">text</span>) {
+    <span class="pl-k">const</span> <span class="pl-c1">ele</span> <span class="pl-k">=</span> <span class="pl-c1">document</span>.<span class="pl-c1">createElement</span>(tagName);
+    <span class="pl-c1">Object</span>.<span class="pl-c1">keys</span>(propMap).<span class="pl-c1">forEach</span>(<span class="pl-smi">prop</span> <span class="pl-k">=&gt;</span> <span class="pl-smi">ele</span>.<span class="pl-c1">setAttribute</span>(prop, propMap[prop]));
+    <span class="pl-k">if</span> (text) {
+        <span class="pl-smi">ele</span>.<span class="pl-c1">appendChild</span>(<span class="pl-c1">document</span>.<span class="pl-c1">createTextNode</span>(text));
+    }
+    <span class="pl-k">return</span> ele;
+}
+
+<span class="pl-k">class</span> <span class="pl-en">SlideUnlock</span> {
+    <span class="pl-en">constructor</span>(<span class="pl-smi">el</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>body<span class="pl-pds">"</span></span>, <span class="pl-smi">options</span> <span class="pl-k">=</span> {}) {
+        <span class="pl-c1">this</span>.<span class="pl-smi">$el</span> <span class="pl-k">=</span> <span class="pl-en">$</span>(el)
+        <span class="pl-c1">this</span>.<span class="pl-smi">$isSuccess</span> <span class="pl-k">=</span> <span class="pl-c1">false</span>
+        <span class="pl-c1">this</span>.<span class="pl-smi">$options</span> <span class="pl-k">=</span> {
+            tip<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>请按住滑块，拖动到最右边<span class="pl-pds">'</span></span>,
+            unlockText<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>验证成功<span class="pl-pds">'</span></span>,
+            duration<span class="pl-k">:</span> <span class="pl-c1">500</span>,
+            <span class="pl-k">...</span>options
+        }
+    }
+
+    <span class="pl-en">init</span>() {
+        <span class="pl-c1">this</span>.<span class="pl-smi">$root</span> <span class="pl-k">=</span> <span class="pl-en">_h</span>(<span class="pl-s"><span class="pl-pds">"</span>div<span class="pl-pds">"</span></span>, { class<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>slide-track<span class="pl-pds">"</span></span> }) <span class="pl-c"><span class="pl-c">//</span> 轨道</span>
+        <span class="pl-c1">this</span>.<span class="pl-smi">$bg</span> <span class="pl-k">=</span> <span class="pl-c1">this</span>.<span class="pl-smi">$root</span>.<span class="pl-c1">appendChild</span>(<span class="pl-en">_h</span>(<span class="pl-s"><span class="pl-pds">"</span>div<span class="pl-pds">"</span></span>, { class<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>slide-bg<span class="pl-pds">"</span></span> }))
+        <span class="pl-c1">this</span>.<span class="pl-smi">$block</span> <span class="pl-k">=</span> <span class="pl-c1">this</span>.<span class="pl-smi">$root</span>.<span class="pl-c1">appendChild</span>(
+            <span class="pl-en">_h</span>(<span class="pl-s"><span class="pl-pds">"</span>div<span class="pl-pds">"</span></span>, { class<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>slide-block<span class="pl-pds">"</span></span> }) <span class="pl-c"><span class="pl-c">//</span> 滑块</span>
+        )
+        <span class="pl-c1">this</span>.<span class="pl-smi">$text</span> <span class="pl-k">=</span> <span class="pl-c1">this</span>.<span class="pl-smi">$root</span>.<span class="pl-c1">appendChild</span>(
+            <span class="pl-en">_h</span>(<span class="pl-s"><span class="pl-pds">"</span>p<span class="pl-pds">"</span></span>, { class<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>slide-text<span class="pl-pds">"</span></span> }, <span class="pl-c1">this</span>.<span class="pl-smi">$options</span>.<span class="pl-smi">tip</span>)
+        )
+        <span class="pl-c1">this</span>.<span class="pl-smi">$el</span>.<span class="pl-c1">insertBefore</span>(<span class="pl-c1">this</span>.<span class="pl-smi">$root</span>, <span class="pl-c1">this</span>.<span class="pl-smi">$el</span>.<span class="pl-c1">firstChild</span>)
+    }
+}</pre></div><p>在创建好 DOM 结构后，接下来为滑块添加鼠标按下的事件，在这个事件中我们需要记录下鼠标的初始横坐标，以便后续和滑动过程中的位置相比较，同时为其添加滑动事件。</p><div class="highlight highlight-source-js"><pre><span class="pl-k">class</span> <span class="pl-en">SlideUnlock</span> {
+    <span class="pl-en">init</span>() {
+        <span class="pl-c"><span class="pl-c">/*</span> ... <span class="pl-c">*/</span></span>
+        <span class="pl-c1">this</span>.<span class="pl-smi">$block</span>.<span class="pl-c1">addEventListener</span>(
+            <span class="pl-s"><span class="pl-pds">"</span>mousedown<span class="pl-pds">"</span></span>,
+            (<span class="pl-c1">this</span>.<span class="pl-smi">$handleMouseDown</span> <span class="pl-k">=</span> <span class="pl-c1">this</span>.<span class="pl-smi">_handleMouseDown</span>.<span class="pl-en">bind</span>(<span class="pl-c1">this</span>)),
+            <span class="pl-c1">false</span>
+        )
+    }
+
+    <span class="pl-en">_handleMouseDown</span>(<span class="pl-smi">e</span>) {
+        <span class="pl-k">const</span> <span class="pl-c1">downx</span> <span class="pl-k">=</span> <span class="pl-smi">e</span>.<span class="pl-smi">clientX</span>
+
+        <span class="pl-smi">e</span>.<span class="pl-c1">target</span>.<span class="pl-c1">addEventListener</span>(
+            <span class="pl-s"><span class="pl-pds">"</span>mousemove<span class="pl-pds">"</span></span>,
+            (<span class="pl-c1">this</span>.<span class="pl-smi">$handleMouseMove</span> <span class="pl-k">=</span> <span class="pl-c1">this</span>.<span class="pl-smi">_handleMouseMove</span>.<span class="pl-en">bind</span>(<span class="pl-c1">this</span>, downx)),
+            <span class="pl-c1">false</span>
+        )
+        <span class="pl-smi">e</span>.<span class="pl-c1">preventDefault</span>()
+    }
+
+    <span class="pl-en">_handleMouseMove</span>(<span class="pl-smi">downx</span>, <span class="pl-smi">e</span>) {}
+}</pre></div><p>在这里有点细节需要注意：</p><ul><li>首先，由于事件监听器中的 <code>this</code> 指向的是触发事件的元素，为此我们在指定鼠标按下的监听器时为其绑定了 <code>this</code>，以便调用滑块实例属性和原型上的方法。</li><li>其次，我们在鼠标按下的监听器中添加了鼠标移动的监听器，如果在初始时同按下的监听器一起指定，那么会先执行鼠标移动的监听器，而此时并没有记录鼠标的初始位置；</li></ul><p>接下来我们要实现滑动过程中的主要逻辑：根据鼠标的移动实时地更新滑块的位置，并对一些临界位置进行处理。</p><div class="highlight highlight-source-js"><pre><span class="pl-en">_handleMouseMove</span>(<span class="pl-smi">downx</span>, <span class="pl-smi">e</span>) {
+    <span class="pl-k">const</span> <span class="pl-c1">info</span> <span class="pl-k">=</span> <span class="pl-c1">this</span>.<span class="pl-smi">$block</span>.<span class="pl-c1">getBoundingClientRect</span>(),
+        x <span class="pl-k">=</span> <span class="pl-smi">e</span>.<span class="pl-smi">clientX</span>,
+        y <span class="pl-k">=</span> <span class="pl-smi">e</span>.<span class="pl-smi">clientY</span>,
+        x1 <span class="pl-k">=</span> <span class="pl-smi">info</span>.<span class="pl-c1">left</span>,
+        y1 <span class="pl-k">=</span> <span class="pl-smi">info</span>.<span class="pl-c1">top</span>,
+        x2 <span class="pl-k">=</span> <span class="pl-smi">info</span>.<span class="pl-c1">right</span>,
+        y2 <span class="pl-k">=</span> <span class="pl-smi">info</span>.<span class="pl-c1">bottom</span>,
+        moveX <span class="pl-k">=</span> x <span class="pl-k">-</span> downx
+
+    <span class="pl-k">if</span> (<span class="pl-c1">this</span>.<span class="pl-smi">$isSuccess</span>) {
+        <span class="pl-k">return</span>
+    }
+    <span class="pl-k">if</span> (moveX <span class="pl-k">&lt;</span> <span class="pl-c1">0</span>) {
+        <span class="pl-k">return</span>
+    }
+    <span class="pl-k">if</span> (x <span class="pl-k">&lt;</span> x1 <span class="pl-k">||</span> x <span class="pl-k">&gt;</span> x2 <span class="pl-k">||</span> y <span class="pl-k">&lt;</span> y1 <span class="pl-k">||</span> y <span class="pl-k">&gt;</span> y2) {
+        <span class="pl-c"><span class="pl-c">//</span> 当鼠标移开滑块时取消移动</span>
+        <span class="pl-k">return</span>
+    }
+
+    <span class="pl-c1">this</span>.<span class="pl-smi">$block</span>.<span class="pl-c1">style</span>.<span class="pl-c1">left</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">`</span><span class="pl-s1"><span class="pl-pse">${</span>moveX<span class="pl-pse">}</span></span>px<span class="pl-pds">`</span></span> <span class="pl-c"><span class="pl-c">//</span> 更新滑块的我i之</span>
+    <span class="pl-c1">this</span>.<span class="pl-smi">$bg</span>.<span class="pl-c1">style</span>.<span class="pl-c1">width</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">`</span><span class="pl-s1"><span class="pl-pse">${</span>moveX<span class="pl-pse">}</span></span>px<span class="pl-pds">`</span></span> <span class="pl-c"><span class="pl-c">//</span> 同步增大背景元素的宽度</span>
+
+    <span class="pl-c"><span class="pl-c">//</span> 当滑块滑动的距离大于等于轨道除去滑块宽度后的距离时表示已经到达轨道的最右边了</span>
+    <span class="pl-k">if</span> (moveX <span class="pl-k">&gt;=</span> <span class="pl-c1">this</span>.<span class="pl-smi">$root</span>.<span class="pl-smi">offsetWidth</span> <span class="pl-k">-</span> (x2 <span class="pl-k">-</span> x1)) {
+        <span class="pl-c1">this</span>.<span class="pl-smi">$isSuccess</span> <span class="pl-k">=</span> <span class="pl-c1">true</span>
+        <span class="pl-c1">this</span>.<span class="pl-smi">$text</span>.<span class="pl-smi">textContent</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>验证成功<span class="pl-pds">"</span></span>
+        <span class="pl-c1">this</span>.<span class="pl-smi">$text</span>.<span class="pl-c1">style</span>.<span class="pl-smi">cssText</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">`</span>color: #fff; left: 0; right: <span class="pl-s1"><span class="pl-pse">${</span><span class="pl-c1">this</span>.<span class="pl-smi">$block</span>.<span class="pl-smi">offsetWidth</span><span class="pl-pse">}</span></span>px<span class="pl-pds">`</span></span>
+        <span class="pl-c1">this</span>.<span class="pl-smi">$block</span>.<span class="pl-smi">classList</span>.<span class="pl-c1">add</span>(<span class="pl-s"><span class="pl-pds">"</span>success<span class="pl-pds">"</span></span>)
+    }
+}</pre></div><p>这里的实现也很简单，唯一需要看一下的就是通过 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Element/getBoundingClientRect" rel="nofollow">getBoundingClientRect</a> 来获取了滑块相对于视口的位置，然后根据鼠标所在的位置来判断鼠标是否在滑块上，如果不在则取消移动。</p><p>现在它已经能很好的滑动，并完成提示成功的基本功能了。但是，当我们每次滑动到中间就取消，然后再次点击滑动时，就会导致重复的添加滑动事件，而且中途释放后，滑块就停在了当前位置，这显然不对。</p><p>解决的办法就是在添加鼠标按下事件的时候，同时也指定一个松开的事件，在这个事件的监听器中判断如果没有成功则取消之前绑定的滑动事件，并进行重置，为了看起来更友好，我们还可以加上一点动画。</p><div class="highlight highlight-source-js"><pre><span class="pl-k">class</span> <span class="pl-en">SlideUnlock</span> {
+    <span class="pl-en">init</span>() {
+        <span class="pl-c"><span class="pl-c">/*</span> ... <span class="pl-c">*/</span></span>
+        <span class="pl-c1">document</span>.<span class="pl-c1">addEventListener</span>(
+            <span class="pl-s"><span class="pl-pds">"</span>mouseup<span class="pl-pds">"</span></span>,
+            (<span class="pl-c1">this</span>.<span class="pl-smi">$handleMouseUp</span> <span class="pl-k">=</span> <span class="pl-c1">this</span>.<span class="pl-smi">_handleMouseUp</span>.<span class="pl-en">bind</span>(<span class="pl-c1">this</span>)),
+            <span class="pl-c1">false</span>
+        )
+    }
+
+    <span class="pl-en">_handleMouseDown</span>(<span class="pl-smi">e</span>) {
+        <span class="pl-c"><span class="pl-c">/*</span> ... <span class="pl-c">*/</span></span>
+        <span class="pl-c"><span class="pl-c">//</span> 取消在手动滑动过程中的动画效果</span>
+        <span class="pl-c1">this</span>.<span class="pl-smi">$bg</span>.<span class="pl-c1">style</span>.<span class="pl-smi">transition</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span><span class="pl-pds">"</span></span>
+        <span class="pl-c1">this</span>.<span class="pl-smi">$block</span>.<span class="pl-c1">style</span>.<span class="pl-smi">transition</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span><span class="pl-pds">"</span></span>
+        <span class="pl-c"><span class="pl-c">/*</span> ... <span class="pl-c">*/</span></span>
+    }
+
+    <span class="pl-en">_handleMouseUp</span>(<span class="pl-smi">e</span>) {
+        <span class="pl-c1">this</span>.<span class="pl-smi">$block</span>.<span class="pl-c1">removeEventListener</span>(
+            <span class="pl-s"><span class="pl-pds">"</span>mousemove<span class="pl-pds">"</span></span>,
+            <span class="pl-c1">this</span>.<span class="pl-smi">$handleMouseMove</span>,
+            <span class="pl-c1">false</span>
+        )
+
+        <span class="pl-k">if</span> (<span class="pl-c1">this</span>.<span class="pl-smi">$isSuccess</span>) {
+            <span class="pl-k">return</span>
+        }
+
+        <span class="pl-c"><span class="pl-c">//</span> 给重置过程添加动画效果</span>
+        <span class="pl-c1">this</span>.<span class="pl-smi">$bg</span>.<span class="pl-c1">style</span>.<span class="pl-smi">transition</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>width 1s ease<span class="pl-pds">"</span></span>
+        <span class="pl-c1">this</span>.<span class="pl-smi">$block</span>.<span class="pl-c1">style</span>.<span class="pl-smi">transition</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>left 1s ease<span class="pl-pds">"</span></span>
+
+        <span class="pl-c1">this</span>.<span class="pl-smi">$block</span>.<span class="pl-c1">style</span>.<span class="pl-c1">left</span> <span class="pl-k">=</span> <span class="pl-c1">0</span>
+        <span class="pl-c1">this</span>.<span class="pl-smi">$bg</span>.<span class="pl-c1">style</span>.<span class="pl-c1">width</span> <span class="pl-k">=</span> <span class="pl-c1">0</span>
+    }
+}</pre></div><p>目前为止，滑块已经可以在 PC 端正常的工作了，不过在移动端却并不理想。</p><p>为了它能够在移动端也可以很好的工作，我们可以借助 <code>touchstart</code>、<code>touchmove</code>、<code>touchend</code> 等事件来完成。</p><p>绑定这些事件的时机和处理方式和之前的三个事件分别相对应，所以我们新增两个方法（和 jQuery 的 on、off 方法很像）来更好的添加和移除事件。</p><div class="highlight highlight-source-js"><pre><span class="pl-k">function</span> <span class="pl-en">bindEvents</span>(<span class="pl-smi">events</span>, <span class="pl-smi">handler</span>, <span class="pl-smi">element</span> <span class="pl-k">=</span> <span class="pl-en">$</span>(<span class="pl-s"><span class="pl-pds">"</span>body<span class="pl-pds">"</span></span>)) {
+    <span class="pl-smi">events</span>.<span class="pl-c1">split</span>(<span class="pl-s"><span class="pl-pds">"</span> <span class="pl-pds">"</span></span>).<span class="pl-c1">forEach</span>(<span class="pl-smi">event</span> <span class="pl-k">=&gt;</span> {
+        <span class="pl-smi">element</span>.<span class="pl-c1">addEventListener</span>(<span class="pl-c1">event</span>, handler, <span class="pl-c1">false</span>)
+    })
+}
+
+<span class="pl-k">function</span> <span class="pl-en">unbindEvents</span>(<span class="pl-smi">events</span>, <span class="pl-smi">handler</span>, <span class="pl-smi">element</span> <span class="pl-k">=</span> <span class="pl-en">$</span>(<span class="pl-s"><span class="pl-pds">"</span>body<span class="pl-pds">"</span></span>)) {
+    <span class="pl-smi">events</span>.<span class="pl-c1">split</span>(<span class="pl-s"><span class="pl-pds">"</span> <span class="pl-pds">"</span></span>).<span class="pl-c1">forEach</span>(<span class="pl-smi">event</span> <span class="pl-k">=&gt;</span> {
+        <span class="pl-smi">element</span>.<span class="pl-c1">removeEventListener</span>(<span class="pl-c1">event</span>, handler, <span class="pl-c1">false</span>)
+    })
+}</pre></div><p>根据这两个方法，我们来稍微修改一下滑块中添加事件的代码。</p><div class="highlight highlight-source-js"><pre><span class="pl-k">class</span> <span class="pl-en">SlideUnlock</span> {
+    <span class="pl-en">init</span>() {
+        <span class="pl-c"><span class="pl-c">/*</span> ... <span class="pl-c">*/</span></span>
+        <span class="pl-en">bindEvents</span>(
+            <span class="pl-s"><span class="pl-pds">"</span>mousedown touchstart<span class="pl-pds">"</span></span>,
+            (<span class="pl-c1">this</span>.<span class="pl-smi">$handleMouseDown</span> <span class="pl-k">=</span> <span class="pl-c1">this</span>.<span class="pl-smi">_handleMouseDown</span>.<span class="pl-en">bind</span>(<span class="pl-c1">this</span>)),
+            <span class="pl-c1">this</span>.<span class="pl-smi">$block</span>
+        )
+        <span class="pl-en">bindEvents</span>(
+            <span class="pl-s"><span class="pl-pds">"</span>mouseup touchend<span class="pl-pds">"</span></span>,
+            (<span class="pl-c1">this</span>.<span class="pl-smi">$handleMouseUp</span> <span class="pl-k">=</span> <span class="pl-c1">this</span>.<span class="pl-smi">_handleMouseUp</span>.<span class="pl-en">bind</span>(<span class="pl-c1">this</span>)),
+            <span class="pl-c1">document</span>
+        )
+    }
+
+    <span class="pl-en">_handleMouseDown</span>(<span class="pl-smi">e</span>) {
+        <span class="pl-c"><span class="pl-c">/*</span> ... <span class="pl-c">*/</span></span>
+        <span class="pl-k">if</span> (<span class="pl-smi">e</span>.<span class="pl-smi">cancelable</span>) {
+            <span class="pl-smi">e</span>.<span class="pl-c1">preventDefault</span>() <span class="pl-c"><span class="pl-c">//</span> 阻止默认行为</span>
+        }
+
+        <span class="pl-c"><span class="pl-c">/*</span> ... <span class="pl-c">*/</span></span>
+        <span class="pl-en">bindEvents</span>(
+            <span class="pl-s"><span class="pl-pds">"</span>mousemove touchmove<span class="pl-pds">"</span></span>,
+            (<span class="pl-c1">this</span>.<span class="pl-smi">$handleMouseMove</span> <span class="pl-k">=</span> <span class="pl-c1">this</span>.<span class="pl-smi">_handleMouseMove</span>.<span class="pl-en">bind</span>(<span class="pl-c1">this</span>, downx)),
+            <span class="pl-c1">this</span>.<span class="pl-smi">$block</span>
+        )
+    }
+
+    <span class="pl-en">handleMouseUp</span>(<span class="pl-smi">e</span>) {
+        <span class="pl-en">unbindEvents</span>(<span class="pl-s"><span class="pl-pds">"</span>mousemove touchmove<span class="pl-pds">"</span></span>, <span class="pl-c1">this</span>.<span class="pl-smi">$handleMouseMove</span>, <span class="pl-c1">this</span>.<span class="pl-smi">$block</span>)
+        <span class="pl-c"><span class="pl-c">/*</span> ... <span class="pl-c">*/</span></span>
+    }
+}</pre></div><p>另外，需要注意的是在移动端 <code>touch</code> 事件中获取 <code>clientX</code>、<code>clientY</code> 时不能在事件对象上直接读取，而是在 <code>event.changedTouches[0]</code> 对象上取得。</p><p>现在，它已经能够同时在 PC 端和移动端上工作了，不过我们还能对它进行一些优化，比如使用函数节流。</p><p>函数节流的实现方式有很多，这里我们列一下在本次中使用的方式。</p><div class="highlight highlight-source-js"><pre><span class="pl-smi">utils</span>.<span class="pl-en">throttle</span> <span class="pl-k">=</span> <span class="pl-k">function</span>(<span class="pl-smi">method</span>, <span class="pl-smi">context</span> <span class="pl-k">=</span> {}, <span class="pl-smi">delay</span> <span class="pl-k">=</span> <span class="pl-c1">4</span>, <span class="pl-k">...</span><span class="pl-v">outParams</span>) {
+  <span class="pl-k">return</span> <span class="pl-k">function</span>(<span class="pl-k">...</span><span class="pl-v">innerParams</span>) {
+    <span class="pl-c1">clearTimeout</span>(<span class="pl-smi">context</span>.<span class="pl-smi">$tId</span>)
+    <span class="pl-smi">context</span>.<span class="pl-smi">$tId</span> <span class="pl-k">=</span> <span class="pl-c1">setTimeout</span>(<span class="pl-k">function</span>() {
+      <span class="pl-smi">method</span>.<span class="pl-c1">apply</span>(context, [<span class="pl-k">...</span>outParams, <span class="pl-k">...</span>innerParams])
+    }, delay)
+  }
+}</pre></div><p>然后用这个节流函数，来包装我们移动时的处理函数，并根据实际情况做点调整。</p><p>除此之外，我们还可以添加一个重置的方法，让它回到最初的状态，涉及到的内容也很简单，就是在成功的状态下重新设置样式和绑定事件。</p><div class="highlight highlight-source-js"><pre><span class="pl-en">reset</span>() {
+    <span class="pl-k">if</span> (<span class="pl-k">!</span><span class="pl-c1">this</span>.<span class="pl-smi">$isSuccess</span>) {
+        <span class="pl-k">return</span>
+    }
+    <span class="pl-c1">this</span>.<span class="pl-smi">$isSuccess</span> <span class="pl-k">=</span> <span class="pl-c1">false</span>
+    <span class="pl-c1">this</span>.<span class="pl-smi">$bg</span>.<span class="pl-c1">style</span>.<span class="pl-smi">cssText</span> <span class="pl-k">=</span>
+        <span class="pl-s"><span class="pl-pds">`</span>transition: width <span class="pl-s1"><span class="pl-pse">${</span><span class="pl-c1">this</span>.<span class="pl-smi">$options</span>.<span class="pl-smi">duration</span><span class="pl-pse">}</span></span>ms ease; width: 0;<span class="pl-pds">`</span></span>
+    <span class="pl-c1">this</span>.<span class="pl-smi">$block</span>.<span class="pl-c1">style</span>.<span class="pl-smi">cssText</span> <span class="pl-k">=</span>
+        <span class="pl-s"><span class="pl-pds">`</span>transition: left <span class="pl-s1"><span class="pl-pse">${</span><span class="pl-c1">this</span>.<span class="pl-smi">$options</span>.<span class="pl-smi">duration</span><span class="pl-pse">}</span></span>ms ease; left: 0;<span class="pl-pds">`</span></span>
+    <span class="pl-c1">this</span>.<span class="pl-smi">$text</span>.<span class="pl-c1">style</span>.<span class="pl-smi">cssText</span> <span class="pl-k">=</span>
+        <span class="pl-s"><span class="pl-pds">`</span>color: #5f5f5f; left: <span class="pl-s1"><span class="pl-pse">${</span><span class="pl-c1">this</span>.<span class="pl-smi">$block</span>.<span class="pl-smi">offsetWidth</span><span class="pl-pse">}</span></span>px; right: 0;<span class="pl-pds">`</span></span>
+    <span class="pl-c1">this</span>.<span class="pl-smi">$text</span>.<span class="pl-smi">textContent</span> <span class="pl-k">=</span> <span class="pl-c1">this</span>.<span class="pl-smi">$options</span>.<span class="pl-smi">tip</span>
+    <span class="pl-c1">this</span>.<span class="pl-smi">$block</span>.<span class="pl-smi">classList</span>.<span class="pl-c1">remove</span>(<span class="pl-s"><span class="pl-pds">"</span>success<span class="pl-pds">"</span></span>)
+    <span class="pl-c1">this</span>.<span class="pl-en">_bindEvents</span>()
+}</pre></div><p>好了，滑块的实现到这里就告一段落了，相信大家看到这里已经完全明白了，甚至有更好的实现。</p><p>这里写下的实现也只是提供一个思路，欢迎大家一起交流学习。</p><h2><a id="user-content-如何使用" class="anchor" href="#%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>如何使用</h2><p>你可以简单的在 HTML 页面中引入该脚本，然后根据自己的需求设置合适的样式；不过更好的方式是通过这样的思路，在项目中做一些改进（比如平滑降级）等处理。</p><p>接下来是一个简单的使用模板。</p><div class="highlight highlight-text-html-basic"><pre>&lt;<span class="pl-ent">body</span>&gt;
+    &lt;<span class="pl-ent">script</span> <span class="pl-e">src</span>=<span class="pl-s"><span class="pl-pds">"</span>slide-unlock/core.js<span class="pl-pds">"</span></span>&gt;&lt;/<span class="pl-ent">script</span>&gt;
+    &lt;<span class="pl-ent">script</span>&gt;<span class="pl-s1"></span>
+<span class="pl-s1">        <span class="pl-k">const</span> <span class="pl-c1">slider</span> <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">SlideUnlock</span>()</span>
+<span class="pl-s1">        <span class="pl-smi">slider</span>.<span class="pl-en">init</span>()</span>
+<span class="pl-s1">    </span>&lt;/<span class="pl-ent">script</span>&gt;
+&lt;/<span class="pl-ent">body</span>&gt;</pre></div><p>你可以在 <a href="https://dongwanhong.github.io/source-code/slide-unlock/" rel="nofollow">这里</a> 看见完整的使用方式和效果。</p></div><div class="tab-pane"><div class="card" data-toggle="card"><div class="card-title">LESS</div><div class="card-body markdown-body show"><pre><code class="less"><span class="hljs-variable">@track-height:</span> <span class="hljs-number">32px</span>;
+<span class="hljs-variable">@block-width:</span> <span class="hljs-number">45px</span>;
+<span class="hljs-variable">@slide-pc-size:</span> <span class="hljs-number">18px</span>;
+
+<span class="hljs-variable">@block-text:</span> <span class="hljs-number">#afafaf</span>;
+<span class="hljs-variable">@block-pc-text:</span> <span class="hljs-number">#fff</span>;
+<span class="hljs-variable">@slide-text:</span> <span class="hljs-number">#5f5f5f</span>;
+
+<span class="hljs-variable">@track-bg:</span> <span class="hljs-number">#e8e8e8</span>;
+<span class="hljs-variable">@block-bg:</span> <span class="hljs-number">#fff</span>;
+<span class="hljs-variable">@block-bd:</span> <span class="hljs-number">#ccc</span>;
+<span class="hljs-variable">@bg-success:</span> <span class="hljs-number">#7cc13c</span>;
+
+<span class="hljs-selector-class">.slide-track</span> {
+
+  <span class="hljs-selector-tag">&amp;</span>,
+  * {
+    <span class="hljs-attribute">margin</span>: <span class="hljs-number">0</span>;
+    <span class="hljs-attribute">padding</span>: <span class="hljs-number">0</span>;
+    <span class="hljs-attribute">box-sizing</span>: border-box;
+  }
+
+  <span class="hljs-attribute">position</span>: relative;
+  <span class="hljs-attribute">width</span>: <span class="hljs-number">300px</span>;
+  <span class="hljs-attribute">height</span>: <span class="hljs-variable">@track-height</span>;
+  <span class="hljs-attribute">background-color</span>: <span class="hljs-variable">@track-bg</span>;
+
+  <span class="hljs-selector-class">.slide-block</span> {
+    <span class="hljs-attribute">z-index</span>: <span class="hljs-number">999</span>;
+    <span class="hljs-attribute">position</span>: absolute;
+    <span class="hljs-attribute">top</span>: <span class="hljs-number">0</span>;
+    <span class="hljs-attribute">bottom</span>: <span class="hljs-number">0</span>;
+    <span class="hljs-attribute">left</span>: <span class="hljs-number">0</span>;
+    <span class="hljs-attribute">width</span>: <span class="hljs-variable">@block-width</span>;
+    <span class="hljs-attribute">height</span>: <span class="hljs-variable">@track-height</span>;
+    <span class="hljs-attribute">line-height</span>: <span class="hljs-variable">@track-height</span>;
+    <span class="hljs-attribute">text-align</span>: center;
+    <span class="hljs-attribute">color</span>: <span class="hljs-variable">@block-text</span>;
+    <span class="hljs-attribute">background</span>: <span class="hljs-variable">@block-bg</span>;
+    <span class="hljs-attribute">border</span>: <span class="hljs-number">1px</span> solid <span class="hljs-variable">@block-bd</span>;
+    <span class="hljs-attribute">cursor</span>: move;
+
+    <span class="hljs-selector-tag">&amp;</span><span class="hljs-selector-pseudo">::after</span> {
+      <span class="hljs-attribute">content</span>: <span class="hljs-string">'»'</span>;
+    }
+
+    <span class="hljs-selector-tag">&amp;</span><span class="hljs-selector-class">.success</span><span class="hljs-selector-pseudo">::after</span> {
+      <span class="hljs-attribute">content</span>: <span class="hljs-string">'√'</span>;
+      <span class="hljs-attribute">display</span>: block;
+      <span class="hljs-attribute">position</span>: absolute;
+      <span class="hljs-attribute">top</span>: <span class="hljs-number">50%</span>;
+      <span class="hljs-attribute">left</span>: <span class="hljs-number">50%</span>;
+      <span class="hljs-attribute">transform</span>: translate(-<span class="hljs-number">50%</span>, -<span class="hljs-number">50%</span>);
+      <span class="hljs-attribute">width</span>: <span class="hljs-variable">@slide-pc-size</span>;
+      <span class="hljs-attribute">height</span>: <span class="hljs-variable">@slide-pc-size</span>;
+      <span class="hljs-attribute">line-height</span>: <span class="hljs-variable">@slide-pc-size</span>;
+      <span class="hljs-attribute">color</span>: <span class="hljs-variable">@block-pc-text</span>;
+      <span class="hljs-attribute">border-radius</span>: <span class="hljs-number">50%</span>;
+      <span class="hljs-attribute">background</span>: <span class="hljs-variable">@bg-success</span>;
+    }
+  }
+
+  <span class="hljs-selector-class">.slide-text</span> {
+    <span class="hljs-attribute">position</span>: absolute;
+    <span class="hljs-attribute">left</span>: <span class="hljs-variable">@block-width</span>;
+    <span class="hljs-attribute">right</span>: <span class="hljs-number">0</span>;
+    <span class="hljs-attribute">z-index</span>: <span class="hljs-number">99</span>;
+    <span class="hljs-attribute">margin</span>: <span class="hljs-number">0</span>;
+    <span class="hljs-attribute">line-height</span>: <span class="hljs-variable">@track-height</span>;
+    <span class="hljs-attribute">font-size</span>: <span class="hljs-number">14px</span>;
+    <span class="hljs-attribute">text-align</span>: center;
+    <span class="hljs-attribute">color</span>: <span class="hljs-variable">@slide-text</span>;
+  }
+
+  <span class="hljs-selector-class">.slide-bg</span> {
+    <span class="hljs-attribute">position</span>: absolute;
+    <span class="hljs-attribute">top</span>: <span class="hljs-number">0</span>;
+    <span class="hljs-attribute">bottom</span>: <span class="hljs-number">0</span>;
+    <span class="hljs-attribute">left</span>: <span class="hljs-number">0</span>;
+    <span class="hljs-attribute">width</span>: <span class="hljs-variable">@block-width</span>;
+    <span class="hljs-attribute">background</span>: <span class="hljs-variable">@bg-success</span>;
+  }
+}
+</code></pre></div></div><div class="card" data-toggle="card"><div class="card-title">JavaScript</div><div class="card-body markdown-body"><pre><code class="javascript"><span class="hljs-keyword">const</span> utils = new (<span class="hljs-class"><span class="hljs-keyword">class</span> </span>{
+  <span class="hljs-comment">/**
+   * <span class="hljs-doctag">@public</span>
+   * <span class="hljs-doctag">@method</span>
+   * <span class="hljs-doctag">@name</span> isFunction
+   * <span class="hljs-doctag">@description</span> 判断传入的值是否是一个函数
+   * <span class="hljs-doctag">@param</span> {*} value 需要检测的值
+   * <span class="hljs-doctag">@returns</span> {boolean}
+   */</span>
+  isFunction(value) {
+    <span class="hljs-keyword">return</span> Object.prototype.toString.call(value) === <span class="hljs-string">'[object Function]'</span>
+  }
+
+  <span class="hljs-comment">/**
+   * <span class="hljs-doctag">@public</span>
+   * <span class="hljs-doctag">@function</span>
+   * <span class="hljs-doctag">@name</span> $
+   * <span class="hljs-doctag">@description</span> 获取文档中与指定选择器或选择器组匹配的第一个 HTML 元素
+   * <span class="hljs-doctag">@param</span> {string} selectors 包含一个或多个要匹配的选择器的 DOM 字符串
+   * <span class="hljs-doctag">@returns</span> {Element | null} 如果找不到匹配项，则返回 null，否则返回对应的 Element
+   */</span>
+  $(selectors) {
+    <span class="hljs-keyword">return</span> document.querySelector(selectors)
+  }
+
+  <span class="hljs-comment">/**
+   * <span class="hljs-doctag">@private</span>
+   * <span class="hljs-doctag">@method</span>
+   * <span class="hljs-doctag">@name</span> _h
+   * <span class="hljs-doctag">@description</span> 创建由 tagName 指定的 HTML 元素
+   * <span class="hljs-doctag">@param</span> {string} tagName 指定要创建元素类型的字符串
+   * <span class="hljs-doctag">@param</span> {object} propMap 可选的，包含 class 等额外配置项
+   * <span class="hljs-doctag">@param</span> {string} text 可选的文字节点
+   * <span class="hljs-doctag">@returns</span> {Element | HTMLUnknownElement} 如果 tagName 不被识别，则创建一个 HTMLUnknownElement
+   */</span>
+  h(tagName, propMap = {}, text) {
+    <span class="hljs-keyword">const</span> ele = document.createElement(tagName)
+    Object.keys(propMap).forEach(prop =&gt; ele.setAttribute(prop, propMap[prop]))
+    <span class="hljs-keyword">if</span> (text) {
+      ele.appendChild(document.createTextNode(text))
+    }
+    <span class="hljs-keyword">return</span> ele
+  }
+
+  <span class="hljs-comment">/**
+   * <span class="hljs-doctag">@public</span>
+   * <span class="hljs-doctag">@function</span>
+   * <span class="hljs-doctag">@name</span> bindEvents
+   * <span class="hljs-doctag">@param</span> {string} events 一个以空格分开的字符串，指定了要绑定的事件
+   * <span class="hljs-doctag">@param</span> {function} handler 事件监听器
+   * <span class="hljs-doctag">@param</span> {Element | undefined} element 可选的，绑定事件的元素
+   * <span class="hljs-doctag">@returns</span> {void}
+   */</span>
+  bindEvents(events, handler, element = <span class="hljs-keyword">this</span>.$(<span class="hljs-string">'body'</span>)) {
+    events.split(<span class="hljs-string">' '</span>).forEach(event =&gt; {
+      element.addEventListener(event, handler, <span class="hljs-literal">false</span>)
+    })
+  }
+
+  <span class="hljs-comment">/**
+   * <span class="hljs-doctag">@public</span>
+   * <span class="hljs-doctag">@function</span>
+   * <span class="hljs-doctag">@name</span> unbindEvents
+   * <span class="hljs-doctag">@param</span> {string} events 一个以空格分开的字符串，指定了要取消的事件
+   * <span class="hljs-doctag">@param</span> {function} handler 事件监听器
+   * <span class="hljs-doctag">@param</span> {Element | undefined} element 可选的，取消事件的元素
+   * <span class="hljs-doctag">@returns</span> {void}
+   */</span>
+  unbindEvents(events, handler, element = <span class="hljs-keyword">this</span>.$(<span class="hljs-string">'body'</span>)) {
+    events.split(<span class="hljs-string">' '</span>).forEach(event =&gt; {
+      element.removeEventListener(event, handler, <span class="hljs-literal">false</span>)
+    })
+  }
+
+  <span class="hljs-comment">/**
+   * <span class="hljs-doctag">@public</span>
+   * <span class="hljs-doctag">@function</span>
+   * <span class="hljs-doctag">@name</span> throttle
+   * <span class="hljs-doctag">@description</span> 对函数进行包装，避免高频率执行损耗性能
+   * <span class="hljs-doctag">@param</span> {function} method 需要执行函数
+   * <span class="hljs-doctag">@param</span> {object} context 函数执行时的上下文环境
+   * <span class="hljs-doctag">@param</span> {number} delay 时间，以毫秒计
+   * <span class="hljs-doctag">@returns</span> {function} 包装后的函数
+   */</span>
+  throttle(method, context = {}, delay = <span class="hljs-number">4</span>, ...outParams) {
+    function withThtottle(...innerParams) {
+      clearTimeout(context.$$tId)
+      function throttleCore() {
+        method.apply(context, [...outParams, ...innerParams])
+      }
+      throttleCore.displayName = `throttleCore(${method.name})`
+      <span class="hljs-comment">// eslint-disable-next-line no-param-reassign</span>
+      context.$$tId = setTimeout(throttleCore, delay)
+    }
+    withThtottle.displayName = `withThtottle(${method.name})`
+    <span class="hljs-keyword">return</span> withThtottle
+  }
+})()
+
+<span class="hljs-comment">/**
+ * Class implement slide verification.
+ * <span class="hljs-doctag">@example</span>
+ * new SlideUnlock().init()
+ */</span>
+<span class="hljs-comment">// eslint-disable-next-line no-unused-vars</span>
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SlideUnlock</span> </span>{
+  <span class="hljs-comment">/**
+   * 初始化滑块，处理配置
+   * <span class="hljs-doctag">@param</span> {Element} el 挂载的元素
+   * <span class="hljs-doctag">@param</span> {object} options 配置项
+   */</span>
+  <span class="hljs-keyword">constructor</span>(el = <span class="hljs-string">'body'</span>, options = {}) {
+    <span class="hljs-keyword">this</span>.$el = utils.$(el)
+    <span class="hljs-keyword">this</span>.$$isSuccess = <span class="hljs-literal">false</span>
+    <span class="hljs-keyword">this</span>.$options = {
+      tip: <span class="hljs-string">'请按住滑块，拖动到最右边'</span>,
+      unlockText: <span class="hljs-string">'验证成功'</span>,
+      duration: <span class="hljs-number">500</span>,
+      ...options
+    }
+  }
+
+  <span class="hljs-comment">/**
+   * <span class="hljs-doctag">@public</span>
+   * <span class="hljs-doctag">@method</span>
+   * <span class="hljs-doctag">@name</span> init
+   * <span class="hljs-doctag">@description</span> 创建滑块的 DOM 结构，并添加鼠标在滑块上按下的监听器
+   * <span class="hljs-doctag">@returns</span> {void}
+   */</span>
+  <span class="hljs-keyword">init</span>() {
+    <span class="hljs-keyword">this</span>.$$root = utils.h(<span class="hljs-string">'div'</span>, { <span class="hljs-class"><span class="hljs-keyword">class</span>: <span class="hljs-type">'slide-track' })</span></span>
+    <span class="hljs-keyword">this</span>.$$bg = <span class="hljs-keyword">this</span>.$$root.appendChild(utils.h(<span class="hljs-string">'div'</span>, { <span class="hljs-class"><span class="hljs-keyword">class</span>: <span class="hljs-type">'slide-bg' }))</span></span>
+    <span class="hljs-keyword">this</span>.$$block = <span class="hljs-keyword">this</span>.$$root.appendChild(
+      utils.h(<span class="hljs-string">'div'</span>, { <span class="hljs-class"><span class="hljs-keyword">class</span>: <span class="hljs-type">'slide-block' })</span></span>
+    )
+    <span class="hljs-keyword">this</span>.$$text = <span class="hljs-keyword">this</span>.$$root.appendChild(
+      utils.h(<span class="hljs-string">'p'</span>, { <span class="hljs-class"><span class="hljs-keyword">class</span>: <span class="hljs-type">'slide-text' }</span>, <span class="hljs-type">this.$options.tip)</span></span>
+    )
+    <span class="hljs-keyword">this</span>.$el.insertBefore(<span class="hljs-keyword">this</span>.$$root, <span class="hljs-keyword">this</span>.$el.firstChild)
+    <span class="hljs-keyword">this</span>._bindEvents()
+  }
+
+  <span class="hljs-comment">/**
+   * <span class="hljs-doctag">@private</span>
+   * <span class="hljs-doctag">@method</span>
+   * <span class="hljs-doctag">@name</span> _bindEvents
+   * <span class="hljs-doctag">@description</span> 绑定鼠标的按下和松开事件
+   * <span class="hljs-doctag">@returns</span> {void}
+   */</span>
+  _bindEvents() {
+    utils.bindEvents(
+      <span class="hljs-string">'mousedown touchstart'</span>,
+      (<span class="hljs-keyword">this</span>.$$handleMouseDown = <span class="hljs-keyword">this</span>._handleMouseDown.bind(<span class="hljs-keyword">this</span>)),
+      <span class="hljs-keyword">this</span>.$$block
+    )
+    utils.bindEvents(
+      <span class="hljs-string">'mouseup touchend'</span>,
+      (<span class="hljs-keyword">this</span>.$$handleMouseUp = <span class="hljs-keyword">this</span>._handleMouseUp.bind(<span class="hljs-keyword">this</span>)),
+      document
+    )
+  }
+
+  <span class="hljs-comment">/**
+   * <span class="hljs-doctag">@private</span>
+   * <span class="hljs-doctag">@method</span>
+   * <span class="hljs-doctag">@name</span> _handleMouseDown
+   * <span class="hljs-doctag">@description</span> 滑块上鼠标按下的监听器，主要记录鼠标的横坐标并指定滑块滑动的监听器
+   * <span class="hljs-doctag">@param</span> {MouseEvent} e 一个基于 Event 的对象
+   * <span class="hljs-doctag">@returns</span> {void}
+   */</span>
+  _handleMouseDown(e) {
+    <span class="hljs-keyword">const</span> eve = e || window.e
+    <span class="hljs-keyword">const</span> downx = eve.clientX || e.changedTouches[<span class="hljs-number">0</span>].clientX
+
+    <span class="hljs-keyword">if</span> (e.cancelable) {
+      e.preventDefault() <span class="hljs-comment">// 阻止默认行为</span>
+    }
+
+    <span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.$$isSuccess) {
+      <span class="hljs-keyword">return</span>
+    }
+
+    <span class="hljs-comment">// 取消在手动滑动过程中的动画效果</span>
+    <span class="hljs-keyword">this</span>.$$bg.style.transition = <span class="hljs-string">''</span>
+    <span class="hljs-keyword">this</span>.$$block.style.transition = <span class="hljs-string">''</span>
+
+    utils.bindEvents(
+      <span class="hljs-string">'mousemove touchmove'</span>,
+      (<span class="hljs-keyword">this</span>.$$handleMouseMove = utils.throttle(
+        <span class="hljs-keyword">this</span>._handleMouseMove,
+        <span class="hljs-keyword">this</span>,
+        undefined,
+        downx
+      )),
+      <span class="hljs-keyword">this</span>.$$block
+    )
+  }
+
+  <span class="hljs-comment">/**
+   * <span class="hljs-doctag">@private</span>
+   * <span class="hljs-doctag">@method</span>
+   * <span class="hljs-doctag">@name</span> _handleMouseMove
+   * <span class="hljs-doctag">@description</span> 滑块滑动的监听器，主要更新滑块位置和背景元素的宽度
+   * <span class="hljs-doctag">@param</span> {MouseEvent} e 一个基于 Event 的对象
+   * <span class="hljs-doctag">@returns</span> {void}
+   */</span>
+  _handleMouseMove(downx, e) {
+    <span class="hljs-keyword">const</span> info = <span class="hljs-keyword">this</span>.$$block.getBoundingClientRect()
+    <span class="hljs-keyword">const</span> x = e.clientX || e.changedTouches[<span class="hljs-number">0</span>].clientX
+    <span class="hljs-keyword">const</span> y = e.clientY
+    <span class="hljs-keyword">const</span> x1 = info.left
+    <span class="hljs-keyword">const</span> y1 = info.top
+    <span class="hljs-keyword">const</span> x2 = info.right
+    <span class="hljs-keyword">const</span> y2 = info.bottom
+    <span class="hljs-keyword">const</span> moveX = x - downx
+
+    <span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.$$isSuccess) {
+      <span class="hljs-keyword">return</span>
+    }
+    <span class="hljs-keyword">if</span> (moveX &lt; <span class="hljs-number">0</span>) {
+      <span class="hljs-keyword">return</span>
+    }
+    <span class="hljs-keyword">if</span> (x &lt; x1 || x &gt; x2 || y &lt; y1 || y &gt; y2) {
+      <span class="hljs-comment">// 当鼠标移开滑块时取消移动</span>
+      <span class="hljs-keyword">return</span>
+    }
+
+    <span class="hljs-keyword">this</span>.$$block.style.left = `${moveX}px`
+    <span class="hljs-keyword">this</span>.$$bg.style.width = `${moveX}px`
+
+    <span class="hljs-keyword">if</span> (moveX &gt;= <span class="hljs-keyword">this</span>.$$root.offsetWidth + x1 - x2) {
+      <span class="hljs-keyword">this</span>.$$isSuccess = <span class="hljs-literal">true</span>
+      <span class="hljs-keyword">this</span>.$$text.textContent = <span class="hljs-keyword">this</span>.$options.unlockText
+      <span class="hljs-keyword">this</span>.$$text.style.cssText = `color: #fff; left: <span class="hljs-number">0</span>; right: ${<span class="hljs-keyword">this</span>.$$block.offsetWidth}px;`
+      <span class="hljs-keyword">this</span>.$$block.classList.add(<span class="hljs-string">'success'</span>)
+      <span class="hljs-keyword">if</span> (utils.isFunction(<span class="hljs-keyword">this</span>.$options.cb)) {
+        <span class="hljs-comment">// 为了避免阻塞成功提示界面的渲染，你可以设置两百毫秒左右的延迟</span>
+        <span class="hljs-keyword">this</span>.$options.cb.call(<span class="hljs-keyword">this</span>)
+      }
+    }
+  }
+
+  <span class="hljs-comment">/**
+   * <span class="hljs-doctag">@private</span>
+   * <span class="hljs-doctag">@method</span>
+   * <span class="hljs-doctag">@name</span> _handleMouseUp
+   * <span class="hljs-doctag">@description</span> 鼠标松开的监听器，主要用于重置
+   * <span class="hljs-doctag">@param</span> {MouseEvent} e 一个基于 Event 的对象
+   * <span class="hljs-doctag">@returns</span> {void}
+   */</span>
+  _handleMouseUp() {
+    clearTimeout(<span class="hljs-keyword">this</span>.$$tId)
+    utils.unbindEvents(
+      <span class="hljs-string">'mousemove touchmove'</span>,
+      <span class="hljs-keyword">this</span>.$$handleMouseMove,
+      <span class="hljs-keyword">this</span>.$$block
+    )
+
+    <span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.$$isSuccess) {
+      utils.unbindEvents(<span class="hljs-string">'mouseup touchend'</span>, <span class="hljs-keyword">this</span>.$$handleMouseUp, document)
+      utils.unbindEvents(
+        <span class="hljs-string">'mousedown touchstart'</span>,
+        <span class="hljs-keyword">this</span>.$$handleMouseDown,
+        <span class="hljs-keyword">this</span>.$$block
+      )
+      <span class="hljs-keyword">return</span>
+    }
+
+    <span class="hljs-comment">// 给重置过程添加动画效果</span>
+    <span class="hljs-keyword">this</span>.$$bg.style.cssText = `transition: width ${<span class="hljs-keyword">this</span>.$options.duration}ms ease; width: <span class="hljs-number">0</span>;`
+    <span class="hljs-keyword">this</span>.$$block.style.cssText = `transition: left ${<span class="hljs-keyword">this</span>.$options.duration}ms ease; left: <span class="hljs-number">0</span>;`
+  }
+
+  <span class="hljs-comment">/**
+   * <span class="hljs-doctag">@public</span>
+   * <span class="hljs-doctag">@method</span>
+   * <span class="hljs-doctag">@name</span> isSuccess
+   * <span class="hljs-doctag">@description</span> 返回当前滑块的状态
+   * <span class="hljs-doctag">@returns</span> {boolean}
+   */</span>
+  isSuccess() {
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.$$isSuccess
+  }
+
+  <span class="hljs-comment">/**
+   * <span class="hljs-doctag">@public</span>
+   * <span class="hljs-doctag">@method</span>
+   * <span class="hljs-doctag">@name</span> reset
+   * <span class="hljs-doctag">@description</span> 重置滑块的状态
+   * <span class="hljs-doctag">@returns</span> {void}
+   */</span>
+  reset() {
+    <span class="hljs-keyword">if</span> (!<span class="hljs-keyword">this</span>.$$isSuccess) {
+      <span class="hljs-keyword">return</span>
+    }
+    <span class="hljs-keyword">this</span>.$$isSuccess = <span class="hljs-literal">false</span>
+    <span class="hljs-keyword">this</span>.$$bg.style.cssText = `transition: width ${<span class="hljs-keyword">this</span>.$options.duration}ms ease; width: <span class="hljs-number">0</span>;`
+    <span class="hljs-keyword">this</span>.$$block.style.cssText = `transition: left ${<span class="hljs-keyword">this</span>.$options.duration}ms ease; left: <span class="hljs-number">0</span>;`
+    <span class="hljs-keyword">this</span>.$$text.style.cssText = `color: #<span class="hljs-number">5f</span>5f5f; left: ${<span class="hljs-keyword">this</span>.$$block.offsetWidth}px; right: <span class="hljs-number">0</span>;`
+    <span class="hljs-keyword">this</span>.$$text.textContent = <span class="hljs-keyword">this</span>.$options.tip
+    <span class="hljs-keyword">this</span>.$$block.classList.remove(<span class="hljs-string">'success'</span>)
+    <span class="hljs-keyword">this</span>._bindEvents()
+  }
+}
+</code></pre></div></div></div></div></main><footer class="footer"><a href="https://github.com/dongwanhong/source-code/"><span class="gh-icon"></span> <span>Star (^▽^ ) or Fork me on GitHub</span></a></footer><script src="https://dongwanhong.github.io/source-code/slide-unlock/main.42901965.js"></script></body></html>
