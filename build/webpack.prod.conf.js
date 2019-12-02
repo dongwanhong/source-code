@@ -43,7 +43,11 @@ const prodConfig = {
       paths: glob.sync([
         path.join(__dirname, '../src/**/*.html'),
         path.join(__dirname, '../src/**/*.js')
-      ])
+      ]),
+      purifyOptions: {
+        // Array of selectors to always leave in
+        whitelist: ['*hljs*', '.gh-icon']
+      }
     }),
     new webpack.HashedModuleIdsPlugin({
       hashFunction: 'md4', // 指定 hash 算法
