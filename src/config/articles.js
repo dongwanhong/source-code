@@ -1,5 +1,5 @@
-module.exports = [
-  {
+module.exports = {
+  'slide-unlock': {
     title: '原生 JavaScript 实现滑块拖动验证',
     links: [
       {
@@ -35,5 +35,25 @@ module.exports = [
       //   src: 'https://cdn.bootcss.com/highlight.js/9.15.10/highlight.min.js'
       // }
     ]
+  },
+  promise: {
+    title: '从零开始，手写完整的 Promise',
+    links: [
+      {
+        rel: 'stylesheet',
+        href:
+          'https://cdn.bootcss.com/github-markdown-css/3.0.1/github-markdown.min.css'
+      }
+    ],
+    buttons: ['示例', '文档', '源码'],
+    examplePath: 'docs/promise/example.md',
+    docsPath: 'docs/promise/README.md',
+    cards: [
+      {
+        name: 'JavaScript',
+        path: 'docs/promise/core.js'
+      }
+    ],
+    scripts: []
   }
-]
+}

@@ -55,15 +55,36 @@ GhPlugins.prototype.apply = function(compiler) {
 
 GhPlugins.prototype.addGhContent = function(data, cb) {
   let htmlStr = data.html
+  const promises = []
   const { options } = data.plugin
 
   // 替换 ejs 模板中的案例
   if (options.examplePath) {
-    const exampleHtml = fs.readFileSync(
+    const exampleStr = fs.readFileSync(
       path.resolve(__dirname, '../', options.examplePath),
       'utf-8'
     )
-    htmlStr = htmlStr.replace(/<%= example %>/, exampleHtml)
+    if (path.extname(options.examplePath) !== '.md') {
+      htmlStr = htmlStr.replace(/<%= example %>/, exampleStr)
+    } else {
+      const form = {
+        text: exampleStr,
+        mode: 'markdown'
+      }
+      const p = rp({
+        method: 'post',
+        url: 'https://api.github.com/markdown',
+        headers,
+        json: true,
+        body: form
+      }).then(body => {
+        htmlStr = htmlStr.replace(
+          /<%= example %>/,
+          `<div class="markdown-body">${body}</div>`
+        )
+      })
+      promises.push(p)
+    }
   } else {
     htmlStr = htmlStr.replace(/<%= example %>/, '')
   }
@@ -104,7 +125,7 @@ GhPlugins.prototype.addGhContent = function(data, cb) {
       text: docStr,
       mode: 'markdown'
     }
-    rp({
+    const p = rp({
       method: 'post',
       url: 'https://api.github.com/markdown',
       headers,
@@ -112,11 +133,18 @@ GhPlugins.prototype.addGhContent = function(data, cb) {
       body: form
     }).then(body => {
       htmlStr = htmlStr.replace(/<%= documents %>/, body)
+    })
+    promises.push(p)
+  } else {
+    htmlStr = htmlStr.replace(/<%= documents %>/, '')
+  }
+
+  if (promises.length) {
+    Promise.all(promises).then(() => {
       data.html = htmlStr
       cb(null, data)
     })
   } else {
-    htmlStr = htmlStr.replace(/<%= documents %>/, '')
     data.html = htmlStr
     cb(null, data)
   }

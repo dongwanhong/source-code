@@ -48,7 +48,7 @@ function getEntries() {
     })
   ]
 
-  files.forEach((file, index) => {
+  files.forEach(file => {
     const othPages = ['list']
     const name = path
       .dirname(file)
@@ -78,7 +78,7 @@ function getEntries() {
             {
               template: resolve('src/config/template.ejs')
             },
-            htmlOptions[index - 1]
+            htmlOptions[name]
           )
         )
       )
