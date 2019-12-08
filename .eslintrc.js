@@ -20,7 +20,10 @@ module.exports = {
     'prettier/prettier': 'error',
     // fix: eslint should be listed in the project's dependencies, not devDependencies
     'import/no-extraneous-dependencies': ['error', { devDependencies: true }],
-    'no-underscore-dangle': 'off'
+    'no-underscore-dangle': 'off',
+    'no-plusplus': 'off',
+    'operator-assignment': 'off',
+    'no-param-reassign': 'off'
   },
   settings: {
     'import/resolver': {
@@ -35,7 +38,8 @@ module.exports = {
       files: ['docs/**/*.js'],
       rules: {
         'max-classes-per-file': 'off',
-        'class-methods-use-this': 'off'
+        'class-methods-use-this': 'off',
+        'no-unused-vars': 'off'
       }
     },
     {
