@@ -1,0 +1,830 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name="description" content="从零开始，手写完整的 Promise。"><meta name="author" content="Dong WanHong"><title>从零开始，手写完整的 Promise</title><link rel="stylesheet" href="https://cdn.bootcss.com/github-markdown-css/3.0.1/github-markdown.min.css"><link rel="shortcut icon" href="https://dongwanhong.github.io/source-code/favicon.ico"></head><body><header class="header" data-toggle="tab"><button value="0">示例</button> <button value="1">文档</button> <button value="2">源码</button></header><main role="main"><div class="tab-content"><div class="tab-pane show fade"><div class="markdown-body"><p>现在，你可以复制下面的一些示例代码到浏览器的控制台中运行，然后对比原生的 <code>Promise</code> 来查看结果。</p><p>Q：如何改变 <code>Promise</code> 的状态？</p><p>A：有三种方式改变，包括：</p><ul><li>调用 <code>resolve(value)</code>： <code>pending</code> -&gt; <code>fulfilled</code></li><li>调用 <code>reject(reason)</code>： <code>pending</code> -&gt; <code>rejected</code></li><li>抛出异常，如果当前状态为 <code>pending</code>，则 <code>pending</code> -&gt; <code>rejected</code></li></ul><div class="highlight highlight-source-js"><pre><span class="pl-k">new</span> <span class="pl-en">_Promise</span>((<span class="pl-smi">resolve</span>, <span class="pl-smi">reject</span>) <span class="pl-k">=&gt;</span> {
+  <span class="pl-c1">setTimeout</span>(() <span class="pl-k">=&gt;</span> {
+    <span class="pl-k">if</span> (<span class="pl-c1">Math</span>.<span class="pl-c1">random</span>() <span class="pl-k">&gt;</span> <span class="pl-c1">0.5</span>) {
+      <span class="pl-en">resolve</span>(<span class="pl-c1">0</span>)
+    } <span class="pl-k">else</span> {
+      <span class="pl-c"><span class="pl-c">//</span> throw 1</span>
+      <span class="pl-en">reject</span>(<span class="pl-c1">1</span>)
+    }
+  }, <span class="pl-c1">1000</span>)
+})
+  .<span class="pl-c1">then</span>(
+    <span class="pl-smi">value</span> <span class="pl-k">=&gt;</span> <span class="pl-en">console</span>.<span class="pl-c1">log</span>(value),
+    <span class="pl-smi">reason</span> <span class="pl-k">=&gt;</span> <span class="pl-en">console</span>.<span class="pl-c1">log</span>(reason)
+  )
+  .<span class="pl-c1">then</span>(<span class="pl-smi">_</span> <span class="pl-k">=&gt;</span> <span class="pl-en">console</span>.<span class="pl-c1">log</span>(<span class="pl-s"><span class="pl-pds">"</span>undefined<span class="pl-pds">"</span></span>, _))</pre></div><p>Q：一个 <code>Promise</code> 指定多个成功或失败的调用，在对应状态转变后都会执行吗？</p><p>A：会</p><div class="highlight highlight-source-js"><pre><span class="pl-k">const</span> <span class="pl-c1">p</span> <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">_Promise</span>((<span class="pl-smi">resolve</span>, <span class="pl-smi">reject</span>) <span class="pl-k">=&gt;</span> {
+  <span class="pl-c1">setTimeout</span>(() <span class="pl-k">=&gt;</span> {
+    <span class="pl-k">if</span> (<span class="pl-c1">Math</span>.<span class="pl-c1">random</span>() <span class="pl-k">&gt;</span> <span class="pl-c1">0.5</span>) {
+      <span class="pl-en">resolve</span>(<span class="pl-c1">0</span>)
+    } <span class="pl-k">else</span> {
+      <span class="pl-en">reject</span>(<span class="pl-c1">1</span>)
+    }
+  }, <span class="pl-c1">1000</span>)
+})
+
+<span class="pl-smi">p</span>.<span class="pl-c1">then</span>(
+  <span class="pl-smi">value</span> <span class="pl-k">=&gt;</span> <span class="pl-en">console</span>.<span class="pl-c1">log</span>(<span class="pl-s"><span class="pl-pds">`</span>callbackResolved1: <span class="pl-s1"><span class="pl-pse">${</span>value<span class="pl-pse">}</span></span><span class="pl-pds">`</span></span>),
+  <span class="pl-smi">reason</span> <span class="pl-k">=&gt;</span> <span class="pl-en">console</span>.<span class="pl-c1">log</span>(<span class="pl-s"><span class="pl-pds">`</span>callbackRejected1: <span class="pl-s1"><span class="pl-pse">${</span>reason<span class="pl-pse">}</span></span><span class="pl-pds">`</span></span>)
+)
+
+<span class="pl-smi">p</span>.<span class="pl-c1">then</span>(
+  <span class="pl-smi">value</span> <span class="pl-k">=&gt;</span> <span class="pl-en">console</span>.<span class="pl-c1">log</span>(<span class="pl-s"><span class="pl-pds">`</span>callbackResolved2: <span class="pl-s1"><span class="pl-pse">${</span>value<span class="pl-pse">}</span></span><span class="pl-pds">`</span></span>),
+  <span class="pl-smi">reason</span> <span class="pl-k">=&gt;</span> <span class="pl-en">console</span>.<span class="pl-c1">log</span>(<span class="pl-s"><span class="pl-pds">`</span>callbackRejected2: <span class="pl-s1"><span class="pl-pse">${</span>reason<span class="pl-pse">}</span></span><span class="pl-pds">`</span></span>)
+)</pre></div><p>Q：改变 <code>Promise</code> 状态和指定回调的顺序？</p><p>A：都有可能，通常会先指定回调</p><p>Q：如何先改变状态再指定回调？</p><p>A：在执行器中同步调用 <code>resolve/reject</code>，或者更晚的调用 <code>then</code> 方法</p><div class="highlight highlight-source-js"><pre><span class="pl-k">const</span> <span class="pl-c1">p</span> <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">_Promise</span>((<span class="pl-smi">resolve</span>, <span class="pl-smi">reject</span>) <span class="pl-k">=&gt;</span> {
+  <span class="pl-c1">setTimeout</span>(() <span class="pl-k">=&gt;</span> {
+    <span class="pl-k">if</span> (<span class="pl-c1">Math</span>.<span class="pl-c1">random</span>() <span class="pl-k">&gt;</span> <span class="pl-c1">0.5</span>) {
+      <span class="pl-en">resolve</span>(<span class="pl-c1">0</span>)
+    } <span class="pl-k">else</span> {
+      <span class="pl-c"><span class="pl-c">//</span> throw 1</span>
+      <span class="pl-en">reject</span>(<span class="pl-c1">1</span>)
+    }
+  }, <span class="pl-c1">500</span>)
+})
+
+<span class="pl-c1">setTimeout</span>(() <span class="pl-k">=&gt;</span> {
+  <span class="pl-smi">p</span>.<span class="pl-c1">then</span>(
+    <span class="pl-smi">value</span> <span class="pl-k">=&gt;</span> <span class="pl-en">console</span>.<span class="pl-c1">log</span>(value),
+    <span class="pl-smi">reason</span> <span class="pl-k">=&gt;</span> <span class="pl-en">console</span>.<span class="pl-c1">log</span>(reason)
+  )
+}, <span class="pl-c1">1000</span>)</pre></div><p>Q：何时得到数据？</p><p>A：</p><ul><li>先指定回调的情况，当状态改变时对应的回调会被异步调用，此时可以获取数据</li><li>先改变状态的情况，当指定回调函数时回调就会被异步调用，此时可以获取数据</li></ul><p>Q：<code>then</code> 方法返回的新的 <code>Promise</code> 的状态是由什么决定的？</p><p>A：由通过其指定的回调函数的执行结果决定：</p><ul><li>如果抛出异常 -&gt; <code>rejected</code></li><li>如果返回的非 <code>thenable</code> -&gt; <code>resolved</code></li><li>否则，返回的 <code>Promise</code> 对象的最终状态由 <code>then</code> 方法执行决定</li></ul><div class="highlight highlight-source-js"><pre><span class="pl-k">new</span> <span class="pl-en">Promise</span>(<span class="pl-smi">resolve</span> <span class="pl-k">=&gt;</span> <span class="pl-en">resolve</span>())
+  .<span class="pl-c1">then</span>(
+    <span class="pl-c"><span class="pl-c">//</span> then 返回的 Promise 的状态将由下面箭头函数返回的 Promise 决定</span>
+    () <span class="pl-k">=&gt;</span>
+      <span class="pl-k">new</span> <span class="pl-en">Promise</span>((<span class="pl-smi">resolve</span>, <span class="pl-smi">reject</span>) <span class="pl-k">=&gt;</span> {
+        <span class="pl-c1">setTimeout</span>(() <span class="pl-k">=&gt;</span> {
+          <span class="pl-k">if</span> (<span class="pl-c1">Math</span>.<span class="pl-c1">random</span>() <span class="pl-k">&gt;</span> <span class="pl-c1">0.5</span>) {
+            <span class="pl-en">resolve</span>(<span class="pl-c1">0</span>)
+          } <span class="pl-k">else</span> {
+            <span class="pl-en">reject</span>(<span class="pl-c1">1</span>)
+          }
+        }, <span class="pl-c1">1000</span>)
+      })
+  )
+  .<span class="pl-c1">then</span>(
+    <span class="pl-smi">value</span> <span class="pl-k">=&gt;</span> <span class="pl-en">console</span>.<span class="pl-c1">log</span>(value),
+    <span class="pl-smi">reason</span> <span class="pl-k">=&gt;</span> <span class="pl-en">console</span>.<span class="pl-c1">log</span>(reason)
+  )</pre></div><p>Q：<code>Promise</code> 如何串联多个操作任务？</p><p>A：通过返回一个新的 <code>Promise</code> 来实现链式调用</p><p>Q：<code>Promise</code> 异常的传透？</p><p>A：当使用 <code>Promise</code> 的链式调用时，可以在链子的最后指定失败的回调，前面任何一个操作出现了异常，都会被传到这个失败回调中进行处理</p><div class="highlight highlight-source-js"><pre><span class="pl-k">new</span> <span class="pl-en">_Promise</span>((<span class="pl-smi">resolve</span>, <span class="pl-smi">reject</span>) <span class="pl-k">=&gt;</span> {
+  <span class="pl-c1">setTimeout</span>(() <span class="pl-k">=&gt;</span> {
+    <span class="pl-en">reject</span>(<span class="pl-c1">1</span>)
+  }, <span class="pl-c1">500</span>)
+})
+  .<span class="pl-c1">then</span>()
+  .<span class="pl-c1">catch</span>(<span class="pl-smi">err</span> <span class="pl-k">=&gt;</span> <span class="pl-en">console</span>.<span class="pl-c1">log</span>(err))</pre></div><p>Q：如何中断 <code>Promise</code> 链？</p><p>A：如果需要从某个节点开始不再执行后续的回调函数，可以在该节点返回一个状态为 <code>pending</code> 且不会改变的 <code>Promise</code> 对象</p><div class="highlight highlight-source-js"><pre><span class="pl-k">new</span> <span class="pl-en">_Promise</span>((<span class="pl-smi">resolve</span>, <span class="pl-smi">reject</span>) <span class="pl-k">=&gt;</span> {
+  <span class="pl-c1">setTimeout</span>(() <span class="pl-k">=&gt;</span> {
+    <span class="pl-k">if</span> (<span class="pl-c1">Math</span>.<span class="pl-c1">random</span>() <span class="pl-k">&gt;</span> <span class="pl-c1">0.5</span>) {
+      <span class="pl-en">resolve</span>(<span class="pl-c1">0</span>)
+    } <span class="pl-k">else</span> {
+      <span class="pl-en">reject</span>(<span class="pl-c1">1</span>)
+    }
+  }, <span class="pl-c1">1000</span>)
+})
+  .<span class="pl-c1">then</span>(() <span class="pl-k">=&gt;</span> <span class="pl-k">new</span> <span class="pl-en">_Promise</span>(() <span class="pl-k">=&gt;</span> {}))
+  .<span class="pl-c1">then</span>(<span class="pl-smi">value</span> <span class="pl-k">=&gt;</span> <span class="pl-en">console</span>.<span class="pl-c1">log</span>(value))
+  .<span class="pl-c1">catch</span>(<span class="pl-smi">err</span> <span class="pl-k">=&gt;</span> <span class="pl-en">console</span>.<span class="pl-c1">log</span>(err)) <span class="pl-c"><span class="pl-c">//</span> 依然可以捕获到错误</span></pre></div><p>我们的实现和原生 <code>Promise</code> 还是有一点小小的差别的，比如抛出的错误没有处理的话，应该继续抛出到外部。</p><p>即便如此，对于我们理解 <code>Promise</code> 的运行机制已经有余了。</p></div></div><div class="tab-pane markdown-body"><h1><a id="user-content-promise" class="anchor" href="#promise" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Promise</h1><p><code>Promise</code> 是一个对象，它代表了一个异步操作的最终完成或者失败。现在它已经成为了 <code>JavaScript</code> 中异步编程的一种重要解决方案，在进一步接触它之前，先来了解一点基本概念。</p><h2><a id="user-content-同步和异步" class="anchor" href="#%E5%90%8C%E6%AD%A5%E5%92%8C%E5%BC%82%E6%AD%A5" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>同步和异步</h2><p>在平时开发过程中我们经常会提到同步和异步的问题。</p><p>所谓<strong>同步</strong>就是在发出一个功能调用时，必须等待这个调用返回结果，整个调用才算结束，等待过程中调用发起者不能继续执行后续操作。</p><div class="highlight highlight-source-js"><pre><span class="pl-k">function</span> <span class="pl-en">sayHello</span>() {
+  <span class="pl-en">console</span>.<span class="pl-c1">log</span>(<span class="pl-s"><span class="pl-pds">"</span>Hello world<span class="pl-pds">"</span></span>)
+}
+<span class="pl-en">sayHello</span>()
+<span class="pl-en">console</span>.<span class="pl-c1">log</span>(<span class="pl-s"><span class="pl-pds">"</span>End of execution<span class="pl-pds">"</span></span>)
+<span class="pl-c"><span class="pl-c">//</span> Hello world</span>
+<span class="pl-c"><span class="pl-c">//</span> End of execution</span></pre></div><p>而<strong>异步</strong>编程在发起调用后，就可以直接执行后续操作，不必等待结果返回。被调用者通过状态、通知来知会调用者，或通过<strong>回调函数</strong>处理这个调用结果。</p><div class="highlight highlight-source-js"><pre><span class="pl-k">function</span> <span class="pl-en">sayHello</span>() {
+  <span class="pl-en">console</span>.<span class="pl-c1">log</span>(<span class="pl-s"><span class="pl-pds">"</span>Hello world<span class="pl-pds">"</span></span>)
+}
+<span class="pl-c1">setTimeout</span>(sayHello)
+<span class="pl-en">console</span>.<span class="pl-c1">log</span>(<span class="pl-s"><span class="pl-pds">"</span>End of execution<span class="pl-pds">"</span></span>)
+<span class="pl-c"><span class="pl-c">//</span> End of execution</span>
+<span class="pl-c"><span class="pl-c">//</span> Hello world</span></pre></div><p>简单来说，同步就是一件一件的完成事情，只有等前一件事完成了才能做下一件事；而异步就像是在发布任务，可以一直发布，而不必关心任务的执行过程。</p><h2><a id="user-content-回调函数" class="anchor" href="#%E5%9B%9E%E8%B0%83%E5%87%BD%E6%95%B0" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>回调函数</h2><p>那么上面提到的回调函数又是什么呢？</p><p><strong>回调函数</strong>就是一个通过函数指针调用的函数，通常我们将函数作为值通过参数进行传递时就会产生回调。</p><p>正如上面所提到的，回调的一大用处就是调用者用来处理异步任务的执行结果。这在我们的开发中经常会见到，尤其是在 <code>Node.js</code> 中。</p><div class="highlight highlight-source-js"><pre><span class="pl-k">const</span> <span class="pl-c1">fs</span> <span class="pl-k">=</span> <span class="pl-c1">require</span>(<span class="pl-s"><span class="pl-pds">"</span>fs<span class="pl-pds">"</span></span>)
+
+<span class="pl-smi">fs</span>.<span class="pl-en">readFile</span>(<span class="pl-s"><span class="pl-pds">"</span>input.txt<span class="pl-pds">"</span></span>, <span class="pl-k">function</span>(<span class="pl-smi">err</span>, <span class="pl-smi">data</span>) {
+  <span class="pl-k">if</span> (err) <span class="pl-k">return</span> <span class="pl-en">console</span>.<span class="pl-c1">error</span>(err)
+  <span class="pl-en">console</span>.<span class="pl-c1">log</span>(<span class="pl-smi">data</span>.<span class="pl-c1">toString</span>())
+})
+
+<span class="pl-en">console</span>.<span class="pl-c1">log</span>(<span class="pl-s"><span class="pl-pds">"</span>End of execution<span class="pl-pds">"</span></span>)</pre></div><p>针对上面同步和异步的概念，其实回调也有同步回调和异步回调之分。</p><p>故名思意，同步回调将会被同步调用，比如数组原型上的 <code>forEach</code>、<code>map</code> 等方法；异步回调也很常见，比如 DOM 事件、定时器函数等。</p><h2><a id="user-content-回调地狱" class="anchor" href="#%E5%9B%9E%E8%B0%83%E5%9C%B0%E7%8B%B1" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>回调地狱</h2><p>接着回调的功能讲，我们在一些异步任务完成后想要利用结果进一步处理时，最直接和简单的方法就是使用回调，这很好，在一定程度上确实能解决不少问题。</p><p>更进一步呢？如果我们在回调函数中又产生了一些异步操作，并且也需要通过这个异步的结果来做些事情，那么就要再增加一层回调了。</p><p>也许，这也没什么事，因为也就两层，但是紧接着如此循环的话，将可能导致的更深的层次呢？</p><p>毫无疑问，这简直是个噩梦，所以我们把这种情形“亲（坑）切（爹）的”称之为回调地狱。</p><p>它，就像下面这样，甚至可以更复杂。</p><div class="highlight highlight-source-js"><pre><span class="pl-smi">fs</span>.<span class="pl-en">readdir</span>(source, <span class="pl-k">function</span>(<span class="pl-smi">err</span>, <span class="pl-smi">files</span>) {
+  <span class="pl-k">if</span> (err) {
+    <span class="pl-en">console</span>.<span class="pl-c1">log</span>(<span class="pl-s"><span class="pl-pds">"</span>Error finding files: <span class="pl-pds">"</span></span> <span class="pl-k">+</span> err)
+  } <span class="pl-k">else</span> {
+    <span class="pl-smi">files</span>.<span class="pl-c1">forEach</span>(<span class="pl-k">function</span>(<span class="pl-smi">filename</span>, <span class="pl-smi">fileIndex</span>) {
+      <span class="pl-en">console</span>.<span class="pl-c1">log</span>(filename)
+      <span class="pl-en">gm</span>(source <span class="pl-k">+</span> filename).<span class="pl-c1">size</span>(<span class="pl-k">function</span>(<span class="pl-smi">err</span>, <span class="pl-smi">values</span>) {
+        <span class="pl-k">if</span> (err) {
+          <span class="pl-en">console</span>.<span class="pl-c1">log</span>(<span class="pl-s"><span class="pl-pds">"</span>Error identifying file size: <span class="pl-pds">"</span></span> <span class="pl-k">+</span> err)
+        } <span class="pl-k">else</span> {
+          <span class="pl-en">console</span>.<span class="pl-c1">log</span>(filename <span class="pl-k">+</span> <span class="pl-s"><span class="pl-pds">"</span> : <span class="pl-pds">"</span></span> <span class="pl-k">+</span> values)
+          aspect <span class="pl-k">=</span> <span class="pl-smi">values</span>.<span class="pl-c1">width</span> <span class="pl-k">/</span> <span class="pl-smi">values</span>.<span class="pl-c1">height</span>
+          <span class="pl-smi">widths</span>.<span class="pl-c1">forEach</span>(
+            <span class="pl-k">function</span>(<span class="pl-smi">width</span>, <span class="pl-smi">widthIndex</span>) {
+              height <span class="pl-k">=</span> <span class="pl-c1">Math</span>.<span class="pl-c1">round</span>(width <span class="pl-k">/</span> aspect)
+              <span class="pl-en">console</span>.<span class="pl-c1">log</span>(
+                <span class="pl-s"><span class="pl-pds">"</span>resizing <span class="pl-pds">"</span></span> <span class="pl-k">+</span> filename <span class="pl-k">+</span> <span class="pl-s"><span class="pl-pds">"</span>to <span class="pl-pds">"</span></span> <span class="pl-k">+</span> height <span class="pl-k">+</span> <span class="pl-s"><span class="pl-pds">"</span>x<span class="pl-pds">"</span></span> <span class="pl-k">+</span> height
+              )
+              <span class="pl-c1">this</span>.<span class="pl-c1">resize</span>(width, height).<span class="pl-c1">write</span>(
+                dest <span class="pl-k">+</span> <span class="pl-s"><span class="pl-pds">"</span>w<span class="pl-pds">"</span></span> <span class="pl-k">+</span> width <span class="pl-k">+</span> <span class="pl-s"><span class="pl-pds">"</span>_<span class="pl-pds">"</span></span> <span class="pl-k">+</span> filename,
+                <span class="pl-k">function</span>(<span class="pl-smi">err</span>) {
+                  <span class="pl-k">if</span> (err) <span class="pl-en">console</span>.<span class="pl-c1">log</span>(<span class="pl-s"><span class="pl-pds">"</span>Error writing file: <span class="pl-pds">"</span></span> <span class="pl-k">+</span> err)
+                }
+              )
+            }.<span class="pl-en">bind</span>(<span class="pl-c1">this</span>)
+          )
+        }
+      })
+    })
+  }
+})</pre></div><p>更多介绍可以点击查看 <a href="http://callbackhell.com/" rel="nofollow">Callback Hell</a>。</p><p>所幸，现在我们可以使用 <code>Promise</code> 来规避掉回调地狱。</p><h2><a id="user-content-更上一层楼" class="anchor" href="#%E6%9B%B4%E4%B8%8A%E4%B8%80%E5%B1%82%E6%A5%BC" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>更上一层楼</h2><p>我们先在这里放一个异步的例子，里面包含了一些简单的异步操作，并指定了相应的回调函数，很好的描述了传统异步编程的解决方案。</p><div class="highlight highlight-source-js"><pre><span class="pl-k">function</span> <span class="pl-en">successCb</span>(<span class="pl-smi">value</span>) {
+  <span class="pl-en">console</span>.<span class="pl-c1">log</span>(value)
+  <span class="pl-c"><span class="pl-c">//</span> [async] code ...</span>
+}
+
+<span class="pl-k">function</span> <span class="pl-en">failedCb</span>(<span class="pl-smi">reason</span>) {
+  <span class="pl-en">console</span>.<span class="pl-c1">log</span>(reason)
+  <span class="pl-c"><span class="pl-c">//</span> [async] code ...</span>
+}
+
+<span class="pl-k">function</span> <span class="pl-en">toDo</span>(<span class="pl-smi">successCb</span>, <span class="pl-smi">failedCb</span>) {
+  <span class="pl-c"><span class="pl-c">//</span> other code ...</span>
+  <span class="pl-c1">setTimeout</span>(() <span class="pl-k">=&gt;</span> {
+    <span class="pl-k">if</span> (<span class="pl-c1">Math</span>.<span class="pl-c1">random</span>() <span class="pl-k">&gt;</span> <span class="pl-c1">0.5</span>) {
+      <span class="pl-en">successCb</span>(<span class="pl-c1">0</span>)
+    } <span class="pl-k">else</span> {
+      <span class="pl-en">failedCb</span>(<span class="pl-c1">1</span>)
+    }
+  }, <span class="pl-c1">1000</span>)
+}
+
+<span class="pl-en">toDo</span>(successCb, failedCb)</pre></div><p>接者，我们来简单的认识一下 <code>Promise</code>。</p><p><code>Promise</code> 是 <code>JavaScript</code> 提供的一种新的异步编程解决方案，一个显著的例子就是解决了上面所说的回调地狱。</p><p>具体的来讲，<code>Promise</code> 就是一个对象（通过 new 调用的构造函数），其内封装了一个异步操作，通过它可以获取异步操作的消息。</p><p><code>Promise</code> 构造函数总是接受一个函数作为参数，并为此函数提供了 <code>resolve</code>、<code>reject</code> 两个参数，两者都是函数，用来改变状态并返回值。</p><p>对于一个 <code>Promise</code> 对象而言，共存在有三种状态：<code>pending</code>（进行中）、<code>fulfilled</code>（已成功）和 <code>rejected</code>（已失败）。</p><p>我们需要注意的是，状态的改变只能由进行中转变为另一种状态，而且一旦状态改变，就不会再变。</p><p><code>Promise</code> 的初始状态为 <code>pending</code>，在其中的异步操作得到结果后我们就可以通过 <code>resolve</code> 函数将状态转变为 <code>fulfilled</code>，或者调用 <code>reject</code> 转为 <code>rejected</code> 状态。</p><p>然后，我们在外部就可以通过 <code>Promise</code> 实例上面的 <code>then</code> 方法来进一步处理。</p><p>接下来是一个简单的使用示例，是对上面示例的修改。</p><div class="highlight highlight-source-js"><pre><span class="pl-k">new</span> <span class="pl-en">Promise</span>((<span class="pl-smi">resolve</span>, <span class="pl-smi">reject</span>) <span class="pl-k">=&gt;</span> {
+  <span class="pl-c1">setTimeout</span>(() <span class="pl-k">=&gt;</span> {
+    <span class="pl-k">if</span> (<span class="pl-c1">Math</span>.<span class="pl-c1">random</span>() <span class="pl-k">&gt;</span> <span class="pl-c1">0.5</span>) {
+      <span class="pl-en">resolve</span>(<span class="pl-c1">0</span>)
+    } <span class="pl-k">else</span> {
+      <span class="pl-en">reject</span>(<span class="pl-c1">1</span>)
+    }
+  }, <span class="pl-c1">1000</span>)
+}).<span class="pl-c1">then</span>(
+  <span class="pl-smi">value</span> <span class="pl-k">=&gt;</span> <span class="pl-en">console</span>.<span class="pl-c1">log</span>(value),
+  <span class="pl-smi">reason</span> <span class="pl-k">=&gt;</span> <span class="pl-en">console</span>.<span class="pl-c1">log</span>(reason)
+)</pre></div><p>其实可以看出来，<code>then</code> 方法就是封装了我们传递回调函数的步骤，但是，传统回调函数的传递只能在任务执行时传入，而使用 <code>Promise</code> 后，则可以在后续指定。</p><p>另外，需要注意的是 <code>then</code> 方法返回了一个新的 <code>Promise</code>，因此我们可以进行链式调用，而这就是解决回调地狱的关键。</p><h2><a id="user-content-着手实现" class="anchor" href="#%E7%9D%80%E6%89%8B%E5%AE%9E%E7%8E%B0" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>着手实现</h2><p><code>Promise</code> 的使用，这里就不多提了，重点是接下来如何实现。</p><p>在添砖加瓦之前，我们首先将基石打好，在一个自定义的类中列举好整个结构，包括原型和实例上的方法。</p><div class="highlight highlight-source-js"><pre><span class="pl-c"><span class="pl-c">//</span> 定义三种状态的标识</span>
+<span class="pl-k">const</span> <span class="pl-c1">PENDING</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>PENDING<span class="pl-pds">"</span></span>
+<span class="pl-k">const</span> <span class="pl-c1">FULFILLED</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>FULFILLED<span class="pl-pds">"</span></span>
+<span class="pl-k">const</span> <span class="pl-c1">REJECTED</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>REJECTED<span class="pl-pds">"</span></span>
+
+<span class="pl-k">class</span> <span class="pl-en">_Promise</span> {
+  <span class="pl-en">constructor</span>(<span class="pl-smi">executor</span>) {
+    <span class="pl-c"><span class="pl-c">//</span> 定义基本的实例属性</span>
+    <span class="pl-c1">this</span>.<span class="pl-smi">$status</span> <span class="pl-k">=</span> <span class="pl-c1">PENDING</span>
+    <span class="pl-c1">this</span>.<span class="pl-smi">$value</span> <span class="pl-k">=</span> <span class="pl-c1">undefined</span> <span class="pl-c"><span class="pl-c">//</span> 成功的值或失败的原因</span>
+    <span class="pl-c1">this</span>.<span class="pl-smi">$callbacks</span> <span class="pl-k">=</span> []
+  }
+  <span class="pl-en">resolve</span>(<span class="pl-smi">value</span>) {}
+  <span class="pl-en">reject</span>(<span class="pl-smi">reason</span>) {}
+  <span class="pl-en">then</span>(<span class="pl-smi">onResolved</span>, <span class="pl-smi">onRejected</span>) {}
+  <span class="pl-k">catch</span>(onRejected) {}
+  <span class="pl-k">finally</span>(onFinally) {}
+  <span class="pl-k">static</span> <span class="pl-en">all</span>(<span class="pl-smi">iterable</span>) {}
+  <span class="pl-k">static</span> <span class="pl-en">race</span>(<span class="pl-smi">iterable</span>) {}
+  <span class="pl-k">static</span> <span class="pl-en">resolve</span>(<span class="pl-smi">value</span>) {}
+  <span class="pl-k">static</span> <span class="pl-en">reject</span>(<span class="pl-smi">reason</span>) {}
+}</pre></div><p>然后，来进一步完善构造函数，目前已经初始化了诸如状态之类的信息，并使用一个数组来存储将来被注册的回调函数，接下来就应该执行传入进来的执行器了（executor）。</p><p>在调用执行器之前，需要先来实现两个原型上的辅助函数（resolve、reject），它们负责改变状态和调用相应的回调函数。</p><p>这些回调函数都是通过 <code>then</code> 方法进行指定的，为了区别成功和失败的回调，我们以对象的数据结构来进行存储，为此我们在这里先使用一个简版的实现。</p><div class="highlight highlight-source-js"><pre><span class="pl-c"><span class="pl-c">//</span> ...</span>
+<span class="pl-k">class</span> <span class="pl-en">_Promise</span> {
+  <span class="pl-c"><span class="pl-c">//</span> ...</span>
+  <span class="pl-en">then</span>(<span class="pl-smi">onResolved</span>, <span class="pl-smi">onRejected</span>) {
+    <span class="pl-c1">this</span>.<span class="pl-smi">$callbacks</span>.<span class="pl-c1">push</span>({ onResolved, onRejected })
+  }
+  <span class="pl-c"><span class="pl-c">//</span> ...</span>
+}</pre></div><p>真正的 <code>then</code> 方法不会这么简单，这在后面的实现中会详细介绍，这里只是让我们可以更好的继续进行，现在接着看上面说的两个辅助函数的实现。</p><div class="highlight highlight-source-js"><pre><span class="pl-c"><span class="pl-c">//</span> ...</span>
+<span class="pl-k">class</span> <span class="pl-en">_Promise</span> {
+  <span class="pl-c"><span class="pl-c">//</span> ...</span>
+  <span class="pl-en">resolve</span>(<span class="pl-smi">value</span>) {
+    <span class="pl-c"><span class="pl-c">//</span> 状态只能改变一次</span>
+    <span class="pl-k">if</span> (<span class="pl-c1">this</span>.<span class="pl-smi">$status</span> <span class="pl-k">!==</span> <span class="pl-c1">PENDING</span>) {
+      <span class="pl-k">return</span>
+    }
+    <span class="pl-c1">this</span>.<span class="pl-smi">$value</span> <span class="pl-k">=</span> value
+    <span class="pl-c1">this</span>.<span class="pl-smi">$status</span> <span class="pl-k">=</span> <span class="pl-c1">FULFILLED</span>
+    <span class="pl-k">if</span> (<span class="pl-k">!</span><span class="pl-c1">this</span>.<span class="pl-smi">$callbacks</span>.<span class="pl-c1">length</span>) {
+      <span class="pl-k">return</span>
+    }
+    <span class="pl-c"><span class="pl-c">//</span> 通过 then 注册的回调函数都是异步执行的</span>
+    <span class="pl-c1">setTimeout</span>(() <span class="pl-k">=&gt;</span> {
+      <span class="pl-c1">this</span>.<span class="pl-smi">$callbacks</span>.<span class="pl-c1">forEach</span>(<span class="pl-smi">cbMap</span> <span class="pl-k">=&gt;</span> {
+        <span class="pl-smi">cbMap</span>.<span class="pl-en">onResolved</span>(value)
+      })
+    })
+  }
+  <span class="pl-en">reject</span>(<span class="pl-smi">reason</span>) {}
+  <span class="pl-c"><span class="pl-c">//</span> ...</span>
+}</pre></div><p>我们在 <code>resolve</code> 方法中改变了状态，并在这之前先对状态进行了检测，一旦状态改变过了，就不再执行后续的操作，否则就调用相应的回调函数。</p><p>另一个 <code>reject</code> 方法的实现几乎完全一样。</p><div class="highlight highlight-source-js"><pre><span class="pl-c"><span class="pl-c">//</span> ...</span>
+<span class="pl-k">class</span> <span class="pl-en">_Promise</span> {
+  <span class="pl-c"><span class="pl-c">//</span> ...</span>
+  <span class="pl-en">resolve</span>(<span class="pl-smi">value</span>) {
+    <span class="pl-c"><span class="pl-c">/*</span> ... <span class="pl-c">*/</span></span>
+  }
+  <span class="pl-en">reject</span>(<span class="pl-smi">reason</span>) {
+    <span class="pl-k">if</span> (<span class="pl-c1">this</span>.<span class="pl-smi">$status</span> <span class="pl-k">!==</span> <span class="pl-c1">PENDING</span>) {
+      <span class="pl-k">return</span>
+    }
+    <span class="pl-c1">this</span>.<span class="pl-smi">$value</span> <span class="pl-k">=</span> reason
+    <span class="pl-c1">this</span>.<span class="pl-smi">$status</span> <span class="pl-k">=</span> <span class="pl-c1">REJECTED</span>
+    <span class="pl-k">if</span> (<span class="pl-k">!</span><span class="pl-c1">this</span>.<span class="pl-smi">$callbacks</span>.<span class="pl-c1">length</span>) {
+      <span class="pl-k">return</span>
+    }
+    <span class="pl-c1">setTimeout</span>(() <span class="pl-k">=&gt;</span> {
+      <span class="pl-c1">this</span>.<span class="pl-smi">$callbacks</span>.<span class="pl-c1">forEach</span>(<span class="pl-smi">cbMap</span> <span class="pl-k">=&gt;</span> {
+        <span class="pl-smi">cbMap</span>.<span class="pl-en">onRejected</span>(reason)
+      })
+    })
+  }
+  <span class="pl-c"><span class="pl-c">//</span> ...</span>
+}</pre></div><p>现在，我们回到构造函数中，开始调用执行器。由于执行器可能会执行失败，所以我们需要捕获可能发生的错误，并作为失败处理。</p><div class="highlight highlight-source-js"><pre><span class="pl-k">class</span> <span class="pl-en">_Promise</span> {
+  <span class="pl-c"><span class="pl-c">//</span> ...</span>
+  <span class="pl-en">constructor</span>(<span class="pl-smi">executor</span>) {
+    <span class="pl-c1">this</span>.<span class="pl-smi">$status</span> <span class="pl-k">=</span> <span class="pl-c1">PENDING</span>
+    <span class="pl-c1">this</span>.<span class="pl-smi">$value</span> <span class="pl-k">=</span> <span class="pl-c1">undefined</span>
+    <span class="pl-c1">this</span>.<span class="pl-smi">$callbacks</span> <span class="pl-k">=</span> []
+
+    <span class="pl-k">try</span> {
+      <span class="pl-en">executor</span>(<span class="pl-c1">this</span>.<span class="pl-smi">resolve</span>.<span class="pl-en">bind</span>(<span class="pl-c1">this</span>), <span class="pl-c1">this</span>.<span class="pl-smi">reject</span>.<span class="pl-en">bind</span>(<span class="pl-c1">this</span>))
+    } <span class="pl-k">catch</span> (err) {
+      <span class="pl-c1">this</span>.<span class="pl-en">reject</span>(err)
+    }
+  }
+  <span class="pl-c"><span class="pl-c">//</span> ...</span>
+}</pre></div><p>由于 <code>resolve</code> 方法和 <code>reject</code> 将会被当作参数进行传递，所以在传递前我们对它们的 <code>this</code> 进行了硬绑定，除此之外，一目了然。</p><p>到此，我们简易版的 <code>Promise</code> 就实现好了，如果操作正常的话，下面的代码已经可以很好的工作了。</p><div class="highlight highlight-source-js"><pre><span class="pl-k">new</span> <span class="pl-en">_Promise</span>((<span class="pl-smi">resolve</span>, <span class="pl-smi">reject</span>) <span class="pl-k">=&gt;</span> {
+  <span class="pl-c1">setTimeout</span>(() <span class="pl-k">=&gt;</span> {
+    <span class="pl-k">if</span> (<span class="pl-c1">Math</span>.<span class="pl-c1">random</span>() <span class="pl-k">&gt;</span> <span class="pl-c1">0.5</span>) {
+      <span class="pl-en">resolve</span>(<span class="pl-c1">0</span>)
+    } <span class="pl-k">else</span> {
+      <span class="pl-en">reject</span>(<span class="pl-c1">1</span>)
+    }
+  }, <span class="pl-c1">1000</span>)
+}).<span class="pl-c1">then</span>(
+  <span class="pl-smi">value</span> <span class="pl-k">=&gt;</span> <span class="pl-en">console</span>.<span class="pl-c1">log</span>(value),
+  <span class="pl-smi">reason</span> <span class="pl-k">=&gt;</span> <span class="pl-en">console</span>.<span class="pl-c1">log</span>(reason)
+)</pre></div><h3><a id="user-content-then" class="anchor" href="#then" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>then</h3><p>以上三个函数的实现都比较简单，也好理解，而实现 <code>then</code> 方法就相对比较棘手了，它也是整个实现的核心步骤。</p><p>接着上面的例子，如果我们将执行器中的异步去掉的话，结果将不会有任何输出。</p><div class="highlight highlight-source-js"><pre><span class="pl-k">new</span> <span class="pl-en">_Promise</span>((<span class="pl-smi">resolve</span>, <span class="pl-smi">reject</span>) <span class="pl-k">=&gt;</span> {
+  <span class="pl-k">if</span> (<span class="pl-c1">Math</span>.<span class="pl-c1">random</span>() <span class="pl-k">&gt;</span> <span class="pl-c1">0.5</span>) {
+    <span class="pl-en">resolve</span>(<span class="pl-c1">0</span>)
+  } <span class="pl-k">else</span> {
+    <span class="pl-en">reject</span>(<span class="pl-c1">1</span>)
+  }
+}).<span class="pl-c1">then</span>(
+  <span class="pl-smi">value</span> <span class="pl-k">=&gt;</span> <span class="pl-en">console</span>.<span class="pl-c1">log</span>(value),
+  <span class="pl-smi">reason</span> <span class="pl-k">=&gt;</span> <span class="pl-en">console</span>.<span class="pl-c1">log</span>(reason)
+)</pre></div><p>为什么会这样呢？由于执行器是同步执行的，当我们通过 <code>then</code> 方法添加回调函数时，状态已经改变了。</p><p>以目前的实现来看，当状态改变后，就不会再有调用回调函数的地方了，这显然是不对的，而且我们也没有正确的返回新的 <code>Promise</code>。</p><p>所以，现在我们首先需要返回一个新的 <code>Promise</code>，而且在这个新的 <code>Promise</code> 中，我们需要根据当前 <code>Promise</code> 的状态来决定如何处理正在注册的回调函数:</p><ul><li>当状态还是 PENDING 时，将回调函数存储到回调数组中；</li><li>当状态已经变为 FULFILLED 时，异步调用成功的回调；</li><li>当状态已经变为 REJECTED 时，异步调用失败的回调。</li></ul><div class="highlight highlight-source-js"><pre><span class="pl-c"><span class="pl-c">//</span> ...</span>
+<span class="pl-k">class</span> <span class="pl-en">_Promise</span> {
+  <span class="pl-c"><span class="pl-c">//</span> ...</span>
+  <span class="pl-en">then</span>(<span class="pl-smi">onResolved</span>, <span class="pl-smi">onRejected</span>) {
+    <span class="pl-k">return</span> <span class="pl-k">new</span> <span class="pl-en">Promise</span>((<span class="pl-smi">resolve</span>, <span class="pl-smi">reject</span>) <span class="pl-k">=&gt;</span> {
+      <span class="pl-k">if</span> (<span class="pl-c1">this</span>.<span class="pl-smi">$status</span> <span class="pl-k">===</span> <span class="pl-c1">PENDING</span>) {
+        <span class="pl-c1">this</span>.<span class="pl-smi">$callbacks</span>.<span class="pl-c1">push</span>({ onResolved, onRejected })
+      } <span class="pl-k">else</span> <span class="pl-k">if</span> (<span class="pl-c1">this</span>.<span class="pl-smi">$status</span> <span class="pl-k">===</span> <span class="pl-c1">FULFILLED</span>) {
+        <span class="pl-c1">setTimeout</span>(() <span class="pl-k">=&gt;</span> <span class="pl-en">onResolved</span>(<span class="pl-c1">this</span>.<span class="pl-smi">$value</span>))
+      } <span class="pl-k">else</span> {
+        <span class="pl-c1">setTimeout</span>(() <span class="pl-k">=&gt;</span> <span class="pl-en">onRejected</span>(<span class="pl-c1">this</span>.<span class="pl-smi">$value</span>))
+      }
+    })
+  }
+  <span class="pl-c"><span class="pl-c">//</span> ...</span>
+}</pre></div><p>看起来好像好很多了，不过还有一个重要的特性并没有实现：新返回的 <code>Promise</code> 的状态由回调执行的结果决定，目前我们并没有试着去改变新返回的 <code>Promise</code> 的状态。</p><p>那么回调的执行结果又是如何影响新返回的 <code>Promise</code> 的状态呢？这包括三种情况：</p><ul><li>当回调执行异常，则新返回的 <code>Promise</code> 的状态改为 REJECTED，<code>reason</code> 为报错信息；</li><li>当回调返回的值不是 <code>Promise</code> 时，则新返回的 <code>Promise</code> 的状态改变为 FULFILLED，<code>value</code> 就是回调返回的值；</li><li>当回调的返回值是 <code>Promise</code> 时，则新返回的 <code>Promise</code> 的状态由回调返回的 <code>Promise</code> 决定。</li></ul><p>现在将回调放在 <code>try...catch</code> 语句中执行以捕获可能发生的错误，同时需要用一个变量来接受回调执行后返回的值，根据其是否是一个 <code>Promise</code> 来进行对应的处理。</p><div class="highlight highlight-source-js"><pre><span class="pl-c"><span class="pl-c">//</span> ...</span>
+<span class="pl-k">class</span> <span class="pl-en">_Promise</span> {
+  <span class="pl-c"><span class="pl-c">//</span> ...</span>
+  <span class="pl-en">then</span>(<span class="pl-smi">onResolved</span>, <span class="pl-smi">onRejected</span>) {
+    <span class="pl-k">return</span> <span class="pl-k">new</span> <span class="pl-en">Promise</span>((<span class="pl-smi">resolve</span>, <span class="pl-smi">reject</span>) <span class="pl-k">=&gt;</span> {
+      <span class="pl-k">if</span> (<span class="pl-c1">this</span>.<span class="pl-smi">$status</span> <span class="pl-k">===</span> <span class="pl-c1">PENDING</span>) {
+        <span class="pl-c"><span class="pl-c">//</span> ...</span>
+      } <span class="pl-k">else</span> <span class="pl-k">if</span> (<span class="pl-c1">this</span>.<span class="pl-smi">$status</span> <span class="pl-k">===</span> <span class="pl-c1">FULFILLED</span>) {
+        <span class="pl-c1">setTimeout</span>(() <span class="pl-k">=&gt;</span> {
+          <span class="pl-k">try</span> {
+            <span class="pl-k">const</span> <span class="pl-c1">ret</span> <span class="pl-k">=</span> <span class="pl-en">onResolved</span>(<span class="pl-c1">this</span>.<span class="pl-smi">$value</span>)
+            <span class="pl-k">if</span> (ret <span class="pl-k">instanceof</span> _Promise) {
+              <span class="pl-c"><span class="pl-c">//</span> 如果执行结果返回了一个 promise</span>
+              <span class="pl-c"><span class="pl-c">//</span> 则新返回的 promise 的状态由这个返回的 promise 决定</span>
+              <span class="pl-smi">ret</span>.<span class="pl-c1">then</span>(resolve, reject)
+            } <span class="pl-k">else</span> {
+              <span class="pl-en">resolve</span>(ret)
+            }
+          } <span class="pl-k">catch</span> (err) {
+            <span class="pl-c"><span class="pl-c">//</span> 如果出错则以失败处理</span>
+            <span class="pl-en">reject</span>(err)
+          }
+        })
+      } <span class="pl-k">else</span> {
+        <span class="pl-c"><span class="pl-c">//</span> ...</span>
+      }
+    })
+  }
+  <span class="pl-c"><span class="pl-c">//</span> ...</span>
+}</pre></div><p>除了调用的回调需要改为 <code>onRejected</code> 外，异步执行错误回调的情况和上面异步执行成功回调完全一致。</p><p>那么，到现在我们已经处理了在成功和失败的情况下根据回调执行结果来修改新返回 <code>Promise</code> 的状态，可是要是状态还是在 PENDING 呢？</p><p>目前我们还只是简单的将回调直接放到了回调队列中，确实它可以在当前 <code>Promise</code> 状态改变时执行，但是却和我们要返回的新的 <code>Promise</code> 没有任何关联，因此，在将回调加入到队列之前，我们需要进行一层包装。</p><p>做法也很简单，就是将指定的回调放在自定义的函数中进行调用（这个调用过程和我们上面处理异步执行成功/错误回调的处理完全一致），然后，我们再将自定义的函数加入到回调队列中。</p><div class="highlight highlight-source-js"><pre><span class="pl-c"><span class="pl-c">//</span> ...</span>
+<span class="pl-k">class</span> <span class="pl-en">_Promise</span> {
+  <span class="pl-c"><span class="pl-c">//</span> ...</span>
+  <span class="pl-en">then</span>(<span class="pl-smi">onResolved</span>, <span class="pl-smi">onRejected</span>) {
+    <span class="pl-k">return</span> <span class="pl-k">new</span> <span class="pl-en">Promise</span>((<span class="pl-smi">resolve</span>, <span class="pl-smi">reject</span>) <span class="pl-k">=&gt;</span> {
+      <span class="pl-k">if</span> (<span class="pl-c1">this</span>.<span class="pl-smi">$status</span> <span class="pl-k">===</span> <span class="pl-c1">PENDING</span>) {
+        <span class="pl-c1">this</span>.<span class="pl-smi">$callbacks</span>.<span class="pl-c1">push</span>({
+          <span class="pl-en">onResolved</span><span class="pl-k">:</span> () <span class="pl-k">=&gt;</span> {
+            <span class="pl-k">try</span> {
+              <span class="pl-k">const</span> <span class="pl-c1">ret</span> <span class="pl-k">=</span> <span class="pl-en">onResolved</span>(<span class="pl-c1">this</span>.<span class="pl-smi">$value</span>)
+
+              <span class="pl-c"><span class="pl-c">//</span> 包装后我们根据情况调用了 resolve 或者 reject 方法</span>
+              <span class="pl-k">if</span> (ret <span class="pl-k">instanceof</span> _Promise) {
+                <span class="pl-smi">ret</span>.<span class="pl-c1">then</span>(resolve, reject)
+              } <span class="pl-k">else</span> {
+                <span class="pl-en">resolve</span>(ret)
+              }
+            } <span class="pl-k">catch</span> (err) {
+              <span class="pl-en">reject</span>(err)
+            }
+          },
+          <span class="pl-en">onRejected</span><span class="pl-k">:</span> () <span class="pl-k">=&gt;</span> {
+            <span class="pl-k">try</span> {
+              <span class="pl-k">const</span> <span class="pl-c1">ret</span> <span class="pl-k">=</span> <span class="pl-en">onRejected</span>(<span class="pl-c1">this</span>.<span class="pl-smi">$value</span>)
+
+              <span class="pl-k">if</span> (ret <span class="pl-k">instanceof</span> _Promise) {
+                <span class="pl-smi">ret</span>.<span class="pl-c1">then</span>(resolve, reject)
+              } <span class="pl-k">else</span> {
+                <span class="pl-en">resolve</span>(ret)
+              }
+            } <span class="pl-k">catch</span> (err) {
+              <span class="pl-en">reject</span>(err)
+            }
+          }
+        })
+      } <span class="pl-k">else</span> <span class="pl-k">if</span> (<span class="pl-c1">this</span>.<span class="pl-smi">$status</span> <span class="pl-k">===</span> <span class="pl-c1">FULFILLED</span>) {
+        <span class="pl-c1">setTimeout</span>(() <span class="pl-k">=&gt;</span> {
+          <span class="pl-k">try</span> {
+            <span class="pl-k">const</span> <span class="pl-c1">ret</span> <span class="pl-k">=</span> <span class="pl-en">onResolved</span>(<span class="pl-c1">this</span>.<span class="pl-smi">$value</span>)
+
+            <span class="pl-k">if</span> (ret <span class="pl-k">instanceof</span> _Promise) {
+              <span class="pl-c"><span class="pl-c">//</span> 如果执行结果返回了一个 promise</span>
+              <span class="pl-c"><span class="pl-c">//</span> 则新返回的 promise 的状态由这个返回的 promise 决定</span>
+              <span class="pl-smi">ret</span>.<span class="pl-c1">then</span>(resolve, reject)
+            } <span class="pl-k">else</span> {
+              <span class="pl-en">resolve</span>(ret)
+            }
+          } <span class="pl-k">catch</span> (err) {
+            <span class="pl-en">reject</span>(err)
+          }
+        })
+      } <span class="pl-k">else</span> {
+        <span class="pl-c1">setTimeout</span>(() <span class="pl-k">=&gt;</span> {
+          <span class="pl-k">try</span> {
+            <span class="pl-k">const</span> <span class="pl-c1">ret</span> <span class="pl-k">=</span> <span class="pl-en">onRejected</span>(<span class="pl-c1">this</span>.<span class="pl-smi">$value</span>)
+
+            <span class="pl-k">if</span> (ret <span class="pl-k">instanceof</span> _Promise) {
+              <span class="pl-smi">ret</span>.<span class="pl-c1">then</span>(resolve, reject)
+            } <span class="pl-k">else</span> {
+              <span class="pl-en">resolve</span>(ret)
+            }
+          } <span class="pl-k">catch</span> (err) {
+            <span class="pl-en">reject</span>(err)
+          }
+        })
+      }
+    })
+  }
+  <span class="pl-c"><span class="pl-c">//</span> ...</span>
+}</pre></div><p>万幸，它已经能很好的处理同步和异步改变状态的问题了，而且还正确的返回了新的 <code>Promise</code>，不过这代码看起来未免也太冗余了，现在来稍稍的做一下改变。</p><div class="highlight highlight-source-js"><pre><span class="pl-c"><span class="pl-c">//</span> ...</span>
+<span class="pl-k">class</span> <span class="pl-en">_Promise</span> {
+  <span class="pl-c"><span class="pl-c">//</span> ...</span>
+  <span class="pl-en">then</span>(<span class="pl-smi">onResolved</span>, <span class="pl-smi">onRejected</span>) {
+    <span class="pl-k">return</span> <span class="pl-k">new</span> <span class="pl-en">_Promise</span>((<span class="pl-smi">resolve</span>, <span class="pl-smi">reject</span>) <span class="pl-k">=&gt;</span> {
+      <span class="pl-k">const</span> <span class="pl-c1">handler</span> <span class="pl-k">=</span> <span class="pl-smi">cb</span> <span class="pl-k">=&gt;</span> {
+        <span class="pl-k">try</span> {
+          <span class="pl-k">const</span> <span class="pl-c1">ret</span> <span class="pl-k">=</span> <span class="pl-en">cb</span>(<span class="pl-c1">this</span>.<span class="pl-smi">$value</span>)
+          <span class="pl-k">if</span> (ret <span class="pl-k">instanceof</span> _Promise) {
+            <span class="pl-smi">ret</span>.<span class="pl-c1">then</span>(resolve, reject)
+          } <span class="pl-k">else</span> {
+            <span class="pl-en">resolve</span>(ret)
+          }
+        } <span class="pl-k">catch</span> (err) {
+          <span class="pl-en">reject</span>(err)
+        }
+      }
+
+      <span class="pl-k">if</span> (<span class="pl-c1">this</span>.<span class="pl-smi">$status</span> <span class="pl-k">===</span> <span class="pl-c1">PENDING</span>) {
+        <span class="pl-c1">this</span>.<span class="pl-smi">$callbacks</span>.<span class="pl-c1">push</span>({
+          <span class="pl-en">onResolved</span><span class="pl-k">:</span> () <span class="pl-k">=&gt;</span> <span class="pl-en">handler</span>(onResolved),
+          <span class="pl-en">onRejected</span><span class="pl-k">:</span> () <span class="pl-k">=&gt;</span> <span class="pl-en">handler</span>(onRejected)
+        })
+      } <span class="pl-k">else</span> <span class="pl-k">if</span> (<span class="pl-c1">this</span>.<span class="pl-smi">$status</span> <span class="pl-k">===</span> <span class="pl-c1">FULFILLED</span>) {
+        <span class="pl-c"><span class="pl-c">//</span> 牢记通过 then 注册的回调都是异步执行的</span>
+        <span class="pl-c1">setTimeout</span>(() <span class="pl-k">=&gt;</span> {
+          <span class="pl-en">handler</span>(onResolved)
+        })
+      } <span class="pl-k">else</span> {
+        <span class="pl-c1">setTimeout</span>(() <span class="pl-k">=&gt;</span> {
+          <span class="pl-en">handler</span>(onRejected)
+        })
+      }
+    })
+  }
+  <span class="pl-c"><span class="pl-c">//</span> ...</span>
+}</pre></div><p>现在看起来好多了，不过，我们知道 <code>then</code> 方法是可以只指定一个成功的回调的，而我们直接默认了会接收到两个函数参数，所以还需要做一些对参数的处理。</p><p>同时，为了实现错误传透的功效，如果没有指定错误的回调，那么就指定默认的回调，将错误进行传递。</p><div class="highlight highlight-source-js"><pre><span class="pl-c"><span class="pl-c">//</span> ...</span>
+<span class="pl-k">class</span> <span class="pl-en">_Promise</span> {
+  <span class="pl-c"><span class="pl-c">//</span> ...</span>
+  <span class="pl-en">then</span>(<span class="pl-smi">onResolved</span>, <span class="pl-smi">onRejected</span>) {
+    onResolved <span class="pl-k">=</span> <span class="pl-k">typeof</span> onResolved <span class="pl-k">===</span> <span class="pl-s"><span class="pl-pds">'</span>function<span class="pl-pds">'</span></span> <span class="pl-k">?</span> onResolved <span class="pl-k">:</span> <span class="pl-smi">value</span> <span class="pl-k">=&gt;</span> value
+    onRejected <span class="pl-k">=</span>
+      <span class="pl-k">typeof</span> onRejected <span class="pl-k">===</span> <span class="pl-s"><span class="pl-pds">'</span>function<span class="pl-pds">'</span></span>
+        <span class="pl-k">?</span> onRejected
+        <span class="pl-k">:</span> <span class="pl-smi">reason</span> <span class="pl-k">=&gt;</span> {
+            <span class="pl-c"><span class="pl-c">//</span> 错误传透</span>
+            <span class="pl-k">throw</span> reason
+          }
+
+    <span class="pl-k">return</span> <span class="pl-k">new</span> <span class="pl-en">_Promise</span>((<span class="pl-smi">resolve</span>, <span class="pl-smi">reject</span>) <span class="pl-k">=&gt;</span> {<span class="pl-c"><span class="pl-c">/*</span> ... <span class="pl-c">*/</span></span>}
+  }
+  <span class="pl-c"><span class="pl-c">//</span> ...</span>
+}</pre></div><h3><a id="user-content-catch" class="anchor" href="#catch" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>catch</h3><p>终于，我们实现好了核心方法 <code>then</code>，接下来的几个方法相对来说就比较简单了。</p><p><code>catch</code> 方法添加一个失败(rejection) 回调到当前 <code>Promise</code>，然后返回一个新的 <code>Promise</code>。</p><p>事实上，<code>catch</code> 方法可以看作是一个只指定了错误回调了的 <code>then</code> 方法。</p><div class="highlight highlight-source-js"><pre><span class="pl-c"><span class="pl-c">//</span> ...</span>
+<span class="pl-k">class</span> <span class="pl-en">_Promise</span> {
+  <span class="pl-c"><span class="pl-c">//</span> ...</span>
+  <span class="pl-k">catch</span>(onRejected) {
+    <span class="pl-k">return</span> <span class="pl-c1">this</span>.<span class="pl-c1">then</span>(<span class="pl-c1">undefined</span>, onRejected)
+  }
+  <span class="pl-c"><span class="pl-c">//</span> ...</span>
+}</pre></div><p>和 <code>catch</code> 相关的还有一个 <code>finally</code> 方法，这里的实现引用了阮老师的实现，所以就不多做介绍了。</p><h3><a id="user-content-reject" class="anchor" href="#reject" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>reject</h3><p>前面我们已经实现了原型上的辅助方法 <code>reject</code>，现在我们还需要实现 <code>Pormise</code> 上同名的静态方法。</p><p><code>reject</code> 方法返回一个状态为失败的 <code>Promise</code> 对象，并将给定的失败信息传递给对应的处理方法。</p><p>根据我们前面的实现，如果需要得到一个失败的 <code>Promise</code>，只需要在创建 <code>Promise</code> 对象后，再调用它原型上的 <code>reject</code> 方法就可以了。</p><div class="highlight highlight-source-js"><pre><span class="pl-c"><span class="pl-c">//</span> ...</span>
+<span class="pl-k">class</span> <span class="pl-en">_Promise</span> {
+  <span class="pl-c"><span class="pl-c">//</span> ...</span>
+  <span class="pl-k">static</span> <span class="pl-en">reject</span>(<span class="pl-smi">reason</span>) {
+    <span class="pl-k">return</span> <span class="pl-k">new</span> <span class="pl-en">_Promise</span>((<span class="pl-smi">resolve</span>, <span class="pl-smi">reject</span>) <span class="pl-k">=&gt;</span> {
+      <span class="pl-en">reject</span>(reason)
+    })
+  }
+  <span class="pl-c"><span class="pl-c">//</span> ...</span>
+}</pre></div><h3><a id="user-content-resolve" class="anchor" href="#resolve" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>resolve</h3><p>与 <code>reject</code> 方法相对应的，<code>resolve</code> 方法返回一个状态由给定 <code>value</code> 值决定的 <code>Promise</code> 对象。</p><p>如果 <code>value</code> 为空，基本类型或者是不带 <code>then</code> 方法的对象，返回的 <code>Promise</code> 对象状态为 <code>fulfilled</code>，并且将该 <code>value</code> 传递给对应的 <code>then</code> 方法。</p><p>如果该值是 <code>thenable</code>(即，带有 <code>then</code> 方法的对象)，返回的 <code>Promise</code> 对象的最终状态由 <code>then</code> 方法执行决定。</p><p>因此，在处理时我们需要根据传递的值来进行不同的处理。</p><div class="highlight highlight-source-js"><pre><span class="pl-c"><span class="pl-c">//</span> ...</span>
+<span class="pl-k">class</span> <span class="pl-en">_Promise</span> {
+  <span class="pl-c"><span class="pl-c">//</span> ...</span>
+  <span class="pl-k">static</span> <span class="pl-en">resolve</span>(<span class="pl-smi">value</span>) {
+    <span class="pl-k">return</span> <span class="pl-k">new</span> <span class="pl-en">_Promise</span>((<span class="pl-smi">resolve</span>, <span class="pl-smi">reject</span>) <span class="pl-k">=&gt;</span> {
+      <span class="pl-c"><span class="pl-c">//</span> 首先判断得到的值是不是一个对象</span>
+      <span class="pl-k">if</span> (
+        (<span class="pl-k">typeof</span> value <span class="pl-k">===</span> <span class="pl-s"><span class="pl-pds">"</span>object<span class="pl-pds">"</span></span> <span class="pl-k">&amp;&amp;</span> value <span class="pl-k">!==</span> <span class="pl-c1">null</span>) <span class="pl-k">||</span>
+        <span class="pl-k">typeof</span> value <span class="pl-k">===</span> <span class="pl-s"><span class="pl-pds">"</span>function<span class="pl-pds">"</span></span>
+      ) {
+        <span class="pl-k">try</span> {
+          <span class="pl-k">const</span> <span class="pl-c1">then</span> <span class="pl-k">=</span> <span class="pl-smi">value</span>.<span class="pl-smi">then</span>
+          <span class="pl-c"><span class="pl-c">//</span> 接着进一步确定该值是不是 thenable</span>
+          <span class="pl-k">if</span> (<span class="pl-k">typeof</span> then <span class="pl-k">===</span> <span class="pl-s"><span class="pl-pds">"</span>function<span class="pl-pds">"</span></span>) {
+            <span class="pl-en">then</span>(resolve, reject)
+          } <span class="pl-k">else</span> {
+            <span class="pl-c"><span class="pl-c">//</span> 如果不是 thenable，也就是普通对象</span>
+            <span class="pl-c"><span class="pl-c">//</span> 则直接将该 value 传递给对应的 then 方法</span>
+            <span class="pl-en">resolve</span>(value)
+          }
+        } <span class="pl-k">catch</span> (err) {
+          <span class="pl-en">reject</span>(err)
+        }
+      } <span class="pl-k">else</span> {
+        <span class="pl-c"><span class="pl-c">//</span> 如不不是对象，也就是普通值</span>
+        <span class="pl-c"><span class="pl-c">//</span> 则直接将该 value 传递给对应的 then 方法</span>
+        <span class="pl-en">resolve</span>(value)
+      }
+    })
+  }
+  <span class="pl-c"><span class="pl-c">//</span> ...</span>
+}</pre></div><p>由于对象上的 <code>then</code> 方法可能是自定义的，所以进行调用时可能会出错，所以我们把调用部分的代码放在 <code>try..catch</code> 语句中，如果捕获到错误则作为失败的原因返回。</p><p>通常而言，如果你不知道一个值是否是 <code>Promise</code> 对象，就可以使用 <code>Promise.resolve(value)</code> 来返回一个 <code>Promise</code>，这样就能将该 <code>value</code> 以 <code>Promise</code> 对象形式使用。</p><h3><a id="user-content-all" class="anchor" href="#all" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>all</h3><p><code>Promise.all()</code> 方法接受一个可迭代对象作为参数，然后根据该对象返回一个 <code>Promise</code> 实例。</p><p>迭代对象中的每一项通常都是 <code>Promise</code> 的实例，如果不是的话，就会先调用 <code>Promise.resolve</code> 方法，将其转为 <code>Promise</code> 实例。</p><p>最后返回的实例的状态要等到传递的参数中所有的 <code>Promise</code> 成功才会改变为成功状态，并且按照传递的顺序把各个 <code>Promise</code> 的返回值以对应的顺序放在一个数组中返回。</p><p>在整个等待的过程中，如果其中一个 <code>Promise</code> 失败的话，则返回的 <code>Promise</code> 直接变为失败状态。</p><div class="highlight highlight-source-js"><pre><span class="pl-c"><span class="pl-c">//</span> ...</span>
+<span class="pl-k">class</span> <span class="pl-en">_Promise</span> {
+  <span class="pl-c"><span class="pl-c">//</span> ...</span>
+  <span class="pl-k">static</span> <span class="pl-en">all</span>(<span class="pl-smi">iterable</span>) {
+    <span class="pl-k">return</span> <span class="pl-k">new</span> <span class="pl-en">_Promise</span>((<span class="pl-smi">resolve</span>, <span class="pl-smi">reject</span>) <span class="pl-k">=&gt;</span> {
+      <span class="pl-k">let</span> i <span class="pl-k">=</span> <span class="pl-c1">0</span> <span class="pl-c"><span class="pl-c">//</span> 成功的 Promise 的个数</span>
+      <span class="pl-k">const</span> <span class="pl-c1">len</span> <span class="pl-k">=</span> <span class="pl-smi">iterable</span>.<span class="pl-c1">length</span>
+      <span class="pl-k">const</span> <span class="pl-c1">values</span> <span class="pl-k">=</span> []
+
+      <span class="pl-k">if</span> (<span class="pl-k">!</span>len) {
+        <span class="pl-en">resolve</span>(values)
+        <span class="pl-k">return</span>
+      }
+
+      <span class="pl-c"><span class="pl-c">//</span> 将成功的值按照传递的位置存放到最终返回的数组中</span>
+      <span class="pl-k">function</span> <span class="pl-en">emitValues</span>(<span class="pl-smi">index</span>, <span class="pl-smi">value</span>) {
+        values[index] <span class="pl-k">=</span> value
+        <span class="pl-k">if</span> (<span class="pl-k">++</span>i <span class="pl-k">===</span> len) {
+          <span class="pl-en">resolve</span>(values)
+        }
+      }
+
+      <span class="pl-smi">iterable</span>.<span class="pl-c1">forEach</span>((<span class="pl-smi">item</span>, <span class="pl-smi">index</span>) <span class="pl-k">=&gt;</span> {
+        <span class="pl-k">if</span> (item <span class="pl-k">instanceof</span> _Promise) {
+          <span class="pl-smi">item</span>.<span class="pl-c1">then</span>(<span class="pl-smi">curValue</span> <span class="pl-k">=&gt;</span> <span class="pl-en">emitValues</span>(index, curValue), reject)
+        } <span class="pl-k">else</span> {
+          <span class="pl-en">emitValues</span>(index, item)
+        }
+      })
+    })
+  }
+  <span class="pl-c"><span class="pl-c">//</span> ...</span>
+}</pre></div><p>需要注意的是，我们在遍历时通过 <code>index</code> 保存了每项的位置，在状态改变后将对应的值根据这个位置进行存放，当成功的个数 <code>i</code> 与传递进来的个数相等时，就改变最终返回的 <code>Promise</code>。</p><h3><a id="user-content-race" class="anchor" href="#race" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>race</h3><p>相对 <code>Promise.all()</code> 来说 <code>Promise.race()</code> 方法就简单了许多。</p><p><code>Promise.race()</code> 方法同样接受一个 <code>iterable</code> 作为参数，并返回一个 <code>Promise</code> 实例。</p><p>当 <code>iterable</code> 参数里的任意一个子 <code>Promise</code> 成功或失败后，父 <code>Promise</code> 马上也会用子 <code>Promise</code> 的成功返回值或失败详情作为参数调用父 <code>Promise</code> 绑定的相应句柄。</p><div class="highlight highlight-source-js"><pre><span class="pl-c"><span class="pl-c">//</span> ...</span>
+<span class="pl-k">class</span> <span class="pl-en">_Promise</span> {
+  <span class="pl-c"><span class="pl-c">//</span> ...</span>
+  <span class="pl-k">static</span> <span class="pl-en">race</span>(<span class="pl-smi">iterable</span>) {
+    <span class="pl-k">return</span> <span class="pl-en">_Promise</span>((<span class="pl-smi">resolve</span>, <span class="pl-smi">reject</span>) <span class="pl-k">=&gt;</span> {
+      <span class="pl-smi">iterable</span>.<span class="pl-c1">forEach</span>(<span class="pl-smi">item</span> <span class="pl-k">=&gt;</span> {
+        <span class="pl-k">if</span> (item <span class="pl-k">instanceof</span> _Promise) {
+          <span class="pl-smi">item</span>.<span class="pl-c1">then</span>(resolve, reject)
+        } <span class="pl-k">else</span> {
+          <span class="pl-en">resolve</span>(item)
+        }
+      })
+    })
+  }
+  <span class="pl-c"><span class="pl-c">//</span> ...</span>
+}</pre></div><p>现在，大功告成了。</p><h2><a id="user-content-链接" class="anchor" href="#%E9%93%BE%E6%8E%A5" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>链接</h2><ul><li><a href="http://callbackhell.com/" rel="nofollow">Callback Hell</a></li><li><a href="http://es6.ruanyifeng.com/#docs/promise" rel="nofollow">Promise 对象 - ECMAScript 6入门</a></li><li><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Promise" rel="nofollow">Promise - JavaScript | MDN</a></li><li><a href="https://promisesaplus.com/" rel="nofollow">Promises/A+</a></li></ul></div><div class="tab-pane"><div class="card" data-toggle="card"><div class="card-title">JavaScript</div><div class="card-body markdown-body show"><pre><code class="javascript"><span class="hljs-keyword">const</span> PENDING = <span class="hljs-string">'PENDING'</span>
+<span class="hljs-keyword">const</span> FULFILLED = <span class="hljs-string">'FULFILLED'</span>
+<span class="hljs-keyword">const</span> REJECTED = <span class="hljs-string">'REJECTED'</span>
+
+<span class="hljs-comment">/** Class Promise */</span>
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">_Promise</span> </span>{
+  <span class="hljs-comment">/**
+   * <span class="hljs-doctag">@public</span>
+   * <span class="hljs-doctag">@function</span>
+   * <span class="hljs-doctag">@name</span> constructor
+   * <span class="hljs-doctag">@description</span>
+   * 立即调用 executor 函数，并返回所建 Promise 实例对象
+   * <span class="hljs-doctag">@param</span> {Function} executor 执行器，是带有 resolve 和 reject 两个参数的函数
+   * <span class="hljs-doctag">@returns</span> {Promise}
+   */</span>
+  constructor(executor) {
+    this.$$status = PENDING
+    this.$$value = undefined
+    this.$$callbacks = []
+
+    <span class="hljs-keyword">try</span> {
+      executor(this.resolve.bind(this), this.reject.bind(this))
+    } <span class="hljs-keyword">catch</span> (err) {
+      this.reject(err)
+    }
+  }
+
+  <span class="hljs-comment">/**
+   * <span class="hljs-doctag">@private</span>
+   * <span class="hljs-doctag">@method</span>
+   * <span class="hljs-doctag">@name</span> resolve
+   * <span class="hljs-doctag">@description</span>
+   * 将状态由改变为 FULFILLED，并调用成功的回调函数
+   * <span class="hljs-doctag">@param</span> {*} value 异步任务成功后返回的值
+   * <span class="hljs-doctag">@returns</span> {void}
+   */</span>
+  resolve(value) {
+    <span class="hljs-keyword">if</span> (this.$$status !== PENDING) {
+      <span class="hljs-comment">// 状态只能改变一次</span>
+      <span class="hljs-keyword">return</span>
+    }
+
+    this.$$value = value
+    this.$$status = FULFILLED
+
+    <span class="hljs-keyword">if</span> (!this.$$callbacks.length) {
+      <span class="hljs-keyword">return</span>
+    }
+
+    <span class="hljs-comment">// 通过 then 注册的回调函数都是异步执行的</span>
+    setTimeout(() =&gt; {
+      this.$$callbacks.<span class="hljs-keyword">forEach</span>(cbMap =&gt; {
+        cbMap.onResolved(value)
+      })
+    })
+  }
+
+  <span class="hljs-comment">/**
+   * <span class="hljs-doctag">@private</span>
+   * <span class="hljs-doctag">@method</span>
+   * <span class="hljs-doctag">@name</span> reject
+   * <span class="hljs-doctag">@description</span>
+   * 将状态由改变为 REJECTED，并调用失败的回调函数
+   * <span class="hljs-doctag">@param</span> {*} reason 异步任务失败后返回的原因
+   * <span class="hljs-doctag">@returns</span> {void}
+   */</span>
+  reject(reason) {
+    <span class="hljs-keyword">if</span> (this.$$status !== PENDING) {
+      <span class="hljs-keyword">return</span>
+    }
+
+    this.$$value = reason
+    this.$$status = REJECTED
+
+    <span class="hljs-keyword">if</span> (!this.$$callbacks.length) {
+      <span class="hljs-comment">// 无回调函数则直接退出</span>
+      <span class="hljs-keyword">return</span>
+    }
+
+    setTimeout(() =&gt; {
+      this.$$callbacks.<span class="hljs-keyword">forEach</span>(cbMap =&gt; {
+        cbMap.onRejected(reason)
+      })
+    })
+  }
+
+  <span class="hljs-comment">/**
+   * <span class="hljs-doctag">@public</span>
+   * <span class="hljs-doctag">@method</span>
+   * <span class="hljs-doctag">@name</span> then
+   * <span class="hljs-doctag">@description</span>
+   * 添加成功和失败的回调到当前 promise, 并返回一个新的 promise, 其状态将由回调的执行结果决定
+   * <span class="hljs-doctag">@param</span> {Function} onResolved 成功的回调
+   * <span class="hljs-doctag">@param</span> {Function | undefined} onRejected 可选的，失败的回调
+   * <span class="hljs-doctag">@returns</span> {Promise}
+   */</span>
+  then(onResolved, onRejected) {
+    onResolved = typeof onResolved === <span class="hljs-string">'function'</span> ? onResolved : value =&gt; value
+    onRejected =
+      typeof onRejected === <span class="hljs-string">'function'</span>
+        ? onRejected
+        : reason =&gt; {
+            <span class="hljs-comment">// 错误传透</span>
+            <span class="hljs-keyword">throw</span> reason
+          }
+
+    <span class="hljs-keyword">const</span> promise2 = <span class="hljs-keyword">new</span> _Promise((resolve, reject) =&gt; {
+      <span class="hljs-keyword">const</span> handler = cb =&gt; {
+        <span class="hljs-keyword">try</span> {
+          <span class="hljs-keyword">const</span> x = cb(this.$$value)
+          <span class="hljs-keyword">if</span> (x <span class="hljs-keyword">instanceof</span> _Promise) {
+            <span class="hljs-keyword">if</span> (x === promise2) {
+              <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> TypeError(
+                <span class="hljs-string">'Chaining cycle detected for promise #&lt;Promise&gt;'</span>
+              )
+            }
+
+            <span class="hljs-comment">// 如果执行结果返回了一个 Promise 实例对象</span>
+            <span class="hljs-comment">// 则新返回的 promise 的状态由这个返回的 promise 决定</span>
+            x.then(resolve, reject)
+          } <span class="hljs-keyword">else</span> {
+            resolve(x)
+          }
+        } <span class="hljs-keyword">catch</span> (err) {
+          reject(err)
+        }
+      }
+
+      <span class="hljs-keyword">if</span> (this.$$status === PENDING) {
+        this.$$callbacks.push({
+          onResolved: () =&gt; handler(onResolved),
+          onRejected: () =&gt; handler(onRejected)
+        })
+      } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (this.$$status === FULFILLED) {
+        <span class="hljs-comment">// 牢记通过 then 注册的回调都是异步执行的</span>
+        setTimeout(() =&gt; {
+          handler(onResolved)
+        })
+      } <span class="hljs-keyword">else</span> {
+        setTimeout(() =&gt; {
+          handler(onRejected)
+        })
+      }
+    })
+
+    <span class="hljs-keyword">return</span> promise2
+  }
+
+  <span class="hljs-comment">/**
+   * <span class="hljs-doctag">@public</span>
+   * <span class="hljs-doctag">@method</span>
+   * <span class="hljs-doctag">@name</span> catch
+   * <span class="hljs-doctag">@description</span>
+   * 添加一个失败回调到当前 promise
+   * <span class="hljs-doctag">@param</span> {Function} onRejected 失败的回调
+   * <span class="hljs-doctag">@returns</span> {Promise}
+   */</span>
+  <span class="hljs-keyword">catch</span>(onRejected) {
+    <span class="hljs-keyword">return</span> this.then(undefined, onRejected)
+  }
+
+  <span class="hljs-comment">/**
+   * <span class="hljs-doctag">@public</span>
+   * <span class="hljs-doctag">@method</span>
+   * <span class="hljs-doctag">@name</span> finally
+   * <span class="hljs-doctag">@description</span>
+   * 在 promise 结束后无论失败都会执行指定的回调，并返回一个 promise
+   * <span class="hljs-doctag">@param</span> {Function} onFinally promise 结束后调用的函数
+   * <span class="hljs-doctag">@returns</span> {Promise}
+   */</span>
+  <span class="hljs-keyword">finally</span>(onFinally) {
+    <span class="hljs-keyword">return</span> this.then(
+      value =&gt; _Promise.resolve(onFinally()).then(() =&gt; value),
+      reason =&gt;
+        _Promise.resolve(onFinally()).then(() =&gt; {
+          <span class="hljs-keyword">throw</span> reason
+        })
+    )
+  }
+
+  <span class="hljs-comment">/**
+   * <span class="hljs-doctag">@public</span>
+   * <span class="hljs-doctag">@static</span>
+   * <span class="hljs-doctag">@method</span>
+   * <span class="hljs-doctag">@name</span> reject
+   * <span class="hljs-doctag">@description</span>
+   * 返回一个状态为失败的 promise
+   * <span class="hljs-doctag">@param</span> {*} reason 失败的原因
+   * <span class="hljs-doctag">@returns</span> {Promise}
+   */</span>
+  <span class="hljs-keyword">static</span> reject(reason) {
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> _Promise((resolve, reject) =&gt; {
+      reject(reason)
+    })
+  }
+
+  <span class="hljs-comment">/**
+   * <span class="hljs-doctag">@public</span>
+   * <span class="hljs-doctag">@static</span>
+   * <span class="hljs-doctag">@method</span>
+   * <span class="hljs-doctag">@name</span> resolve
+   * <span class="hljs-doctag">@description</span>
+   * 返回一个状态由给定 value 值决定的 promise
+   * <span class="hljs-doctag">@param</span> {*} value 给定的 value 值
+   * <span class="hljs-doctag">@returns</span> {Promise}
+   */</span>
+  <span class="hljs-keyword">static</span> resolve(value) {
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> _Promise((resolve, reject) =&gt; {
+      <span class="hljs-comment">// 首先判断得到的值是不是一个对象</span>
+      <span class="hljs-keyword">if</span> (
+        (typeof value === <span class="hljs-string">'object'</span> &amp;&amp; value !== <span class="hljs-keyword">null</span>) ||
+        typeof value === <span class="hljs-string">'function'</span>
+      ) {
+        <span class="hljs-keyword">try</span> {
+          <span class="hljs-keyword">const</span> { then } = value
+          <span class="hljs-comment">// 接着进一步确定该值是不是 thenable</span>
+          <span class="hljs-keyword">if</span> (typeof then === <span class="hljs-string">'function'</span>) {
+            then(resolve, reject)
+          } <span class="hljs-keyword">else</span> {
+            <span class="hljs-comment">// 普通对象</span>
+            resolve(value)
+          }
+        } <span class="hljs-keyword">catch</span> (err) {
+          reject(value)
+        }
+      } <span class="hljs-keyword">else</span> {
+        <span class="hljs-comment">// 普通值</span>
+        resolve(value)
+      }
+    })
+  }
+
+  <span class="hljs-comment">/**
+   * <span class="hljs-doctag">@public</span>
+   * <span class="hljs-doctag">@static</span>
+   * <span class="hljs-doctag">@method</span>
+   * <span class="hljs-doctag">@name</span> race
+   * <span class="hljs-doctag">@description</span>
+   * 将多个 Promise 实例，包装成一个新的 Promise 实例
+   * <span class="hljs-doctag">@param</span> {*} iterable 可迭代对象
+   * <span class="hljs-doctag">@returns</span> {Promise}
+   */</span>
+  <span class="hljs-keyword">static</span> race(iterable) {
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> _Promise((resolve, reject) =&gt; {
+      iterable.<span class="hljs-keyword">forEach</span>(item =&gt; {
+        <span class="hljs-keyword">if</span> (item <span class="hljs-keyword">instanceof</span> _Promise) {
+          item.then(resolve, reject)
+        } <span class="hljs-keyword">else</span> {
+          resolve(item)
+        }
+      })
+    })
+  }
+
+  <span class="hljs-comment">/**
+   * <span class="hljs-doctag">@public</span>
+   * <span class="hljs-doctag">@static</span>
+   * <span class="hljs-doctag">@method</span>
+   * <span class="hljs-doctag">@name</span> all
+   * <span class="hljs-doctag">@description</span>
+   * 将多个 Promise 实例，包装成一个新的 Promise 实例
+   * <span class="hljs-doctag">@param</span> {*} iterable 可迭代对象
+   * <span class="hljs-doctag">@returns</span> {Promise}
+   */</span>
+  <span class="hljs-keyword">static</span> all(iterable) {
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> _Promise((resolve, reject) =&gt; {
+      let i = <span class="hljs-number">0</span>
+      <span class="hljs-keyword">const</span> len = iterable.length
+      <span class="hljs-keyword">const</span> values = []
+
+      <span class="hljs-keyword">if</span> (!len) {
+        resolve(values)
+        <span class="hljs-keyword">return</span>
+      }
+
+      <span class="hljs-comment">/**
+       * <span class="hljs-doctag">@private</span>
+       * <span class="hljs-doctag">@function</span>
+       * <span class="hljs-doctag">@name</span> emitValues
+       * <span class="hljs-doctag">@description</span>
+       * 将成功的值按照传递的位置存放到最终返回的数组中
+       * <span class="hljs-doctag">@param</span> {*} index
+       * <span class="hljs-doctag">@param</span> {*} value
+       */</span>
+      <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">emitValues</span><span class="hljs-params">(index, value)</span> </span>{
+        values[index] = value
+        <span class="hljs-keyword">if</span> (++i === len) {
+          resolve(values)
+        }
+      }
+
+      iterable.<span class="hljs-keyword">forEach</span>((item, index) =&gt; {
+        <span class="hljs-keyword">if</span> (item <span class="hljs-keyword">instanceof</span> _Promise) {
+          item.then(curValue =&gt; emitValues(index, curValue), reject)
+        } <span class="hljs-keyword">else</span> {
+          emitValues(index, item)
+        }
+      })
+    })
+  }
+}
+</code></pre></div></div></div></div></main><footer class="footer"><a href="https://github.com/dongwanhong/source-code/"><span class="gh-icon"></span> <span>Star (^▽^ ) or Fork me on GitHub</span></a></footer><script src="https://dongwanhong.github.io/source-code/promise/main.cde8d18c.js"></script></body></html>
