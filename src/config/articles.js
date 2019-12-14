@@ -37,7 +37,7 @@ module.exports = {
     ]
   },
   promise: {
-    title: '从零开始，手写完整的 Promise',
+    title: '从零开始，Promise 从理解到实现',
     links: [
       {
         rel: 'stylesheet',
