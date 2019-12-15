@@ -55,5 +55,25 @@ module.exports = {
       }
     ],
     scripts: []
+  },
+  redux: {
+    title: '从零开始，Redux 从理解到实现',
+    links: [
+      {
+        rel: 'stylesheet',
+        href:
+          'https://cdn.bootcss.com/github-markdown-css/3.0.1/github-markdown.min.css'
+      }
+    ],
+    buttons: ['示例', '文档', '源码'],
+    examplePath: 'docs/redux/example.md',
+    docsPath: 'docs/redux/README.md',
+    cards: [
+      {
+        name: 'JavaScript',
+        path: 'docs/redux/core.js'
+      }
+    ],
+    scripts: []
   }
 }
