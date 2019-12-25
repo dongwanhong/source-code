@@ -14,7 +14,9 @@ const prodConfig = {
   mode: 'production',
   optimization: {
     minimizer: [new OptimizeCSSAssetsPlugin(), new TerserJSPlugin()],
-    runtimeChunk: false, // fix: 打包后入口文件的代码不执行
+    runtimeChunk: {
+      name: 'runtime'
+    },
     splitChunks: {
       chunks: 'async',
       name: true,
@@ -28,6 +30,7 @@ const prodConfig = {
       cacheGroups: {
         // 缓存组，会继承 splitChunks 的配置
         common: {
+          name: 'common',
           priority: -20,
           chunks: 'all',
           minChunks: 2,

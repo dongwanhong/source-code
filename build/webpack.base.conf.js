@@ -44,7 +44,7 @@ function getEntries() {
       filename: 'index.html',
       template: resolve('src/index.html'),
       favicon: resolve('src/favicon.ico'),
-      chunks: ['main']
+      chunks: ['runtime', 'common', 'main']
     })
   ]
 
@@ -58,7 +58,7 @@ function getEntries() {
       minify: !devMode ? htmlCompressConf : false,
       filename: `./${name}/index.html`,
       favicon: resolve('src/favicon.ico'),
-      chunks: [name]
+      chunks: ['runtime', name, 'common']
     }
 
     entryMap[name] = resolve(file)
