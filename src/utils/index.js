@@ -138,6 +138,10 @@ export default new (class {
     this.bindEvents(
       'click',
       e => {
+        if (e.target === e.currentTarget) {
+          return
+        }
+
         const tabPanes = this.$$('.tab-pane')
         tabPanes.forEach((oEle, index) => {
           oEle.classList.remove('show', 'fade')
