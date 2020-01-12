@@ -59,11 +59,13 @@ GhPlugins.prototype.addGhContent = function(data, cb) {
   const { options } = data.plugin
 
   // 替换 ejs 模板中的案例
-  if (options.examplePath) {
-    const exampleStr = fs.readFileSync(
-      path.resolve(__dirname, '../', options.examplePath),
-      'utf-8'
-    )
+  const absExamplePath = path.resolve(
+    __dirname,
+    '../',
+    options.examplePath || '.non_existent_path' /* 任何不存在的路径 */
+  )
+  if (fs.existsSync(absExamplePath)) {
+    const exampleStr = fs.readFileSync(absExamplePath, 'utf-8')
     if (path.extname(options.examplePath) !== '.md') {
       htmlStr = htmlStr.replace(/<%= example %>/, exampleStr)
     } else {

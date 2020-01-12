@@ -4,7 +4,7 @@ const glob = require('glob')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const GhPlugins = require('../plugins/gh-plugins')
-const htmlOptions = require('../src/config').articles
+const htmlOptions = require('../config').articles
 
 const devMode = process.env.NODE_ENV !== 'production'
 
@@ -76,7 +76,7 @@ function getEntries() {
           Object.assign(
             defaultConfig,
             {
-              template: resolve('src/config/template.ejs')
+              template: resolve('config/template.ejs')
             },
             htmlOptions[name]
           )
