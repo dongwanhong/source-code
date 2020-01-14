@@ -1,10 +1,9 @@
 const webpack = require('webpack')
 const path = require('path')
-const glob = require('glob')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const GhPlugins = require('../plugins/gh-plugins')
-const htmlOptions = require('../config').articles
+const { articles } = require('../config')
 
 const devMode = process.env.NODE_ENV !== 'production'
 
@@ -13,16 +12,18 @@ function resolve(p) {
 }
 
 function getEntries() {
-  // |- src
-  // |- pages
-  // |---- about
-  // |-------- index.html
-  // |-------- main.js
-  // |---- other
-  // |-------- index.html
-  // |-------- main.js
-  // |- index.html
-  // |- favicon.ico
+  /*
+  |- src
+  |- pages
+  |---- list
+  |-------- index.html
+  |-------- main.js
+  |---- other
+  |-------- index.html
+  |-------- main.js
+  |- index.html
+  |- favicon.ico
+  */
   const htmlCompressConf = {
     collapseWhitespace: true,
     removeComments: true,
@@ -31,58 +32,46 @@ function getEntries() {
     removeStyleLinkTypeAttributes: true,
     useShortDoctype: true
   }
-  const htmlPath = 'src/pages/**/main.js'
-  // (\/|\\\\) 兼容 windows 和 mac 系统目录路径的不同写法
-  const files = glob.sync(htmlPath)
-  // 首页
+  const commonConfig = {
+    minify: !devMode ? htmlCompressConf : false,
+    favicon: resolve('src/favicon.ico')
+  }
   const entryMap = {
-    main: resolve('src/index.js')
+    main: resolve('src/index.js'),
+    list: resolve('src/pages/list/main.js')
   }
   const htmlPluginArray = [
-    new HtmlWebpackPlugin({
-      minify: !devMode ? htmlCompressConf : false,
-      filename: 'index.html',
-      template: resolve('src/index.html'),
-      favicon: resolve('src/favicon.ico'),
-      chunks: ['runtime', 'common', 'main']
-    })
+    new HtmlWebpackPlugin(
+      Object.assign(commonConfig, {
+        filename: 'index.html',
+        template: resolve('src/index.html'),
+        chunks: ['runtime', 'main', 'common']
+      })
+    ),
+    new HtmlWebpackPlugin(
+      Object.assign(commonConfig, {
+        filename: './list/index.html',
+        template: resolve('src/pages/list/index.html'),
+        chunks: ['runtime', 'list', 'common']
+      })
+    )
   ]
 
-  files.forEach(file => {
-    const othPages = ['list']
-    const name = path
-      .dirname(file)
-      .split('/')
-      .pop()
-    const defaultConfig = {
-      minify: !devMode ? htmlCompressConf : false,
-      filename: `./${name}/index.html`,
-      favicon: resolve('src/favicon.ico'),
-      chunks: ['runtime', name, 'common']
-    }
-
-    entryMap[name] = resolve(file)
-    if (othPages.includes(name)) {
-      htmlPluginArray.push(
-        new HtmlWebpackPlugin(
-          Object.assign(defaultConfig, {
-            template: resolve(`./${path.dirname(file)}/index.html`)
-          })
+  Object.keys(articles).forEach(name => {
+    entryMap[name] = resolve(`src/pages/${name}/main.js`)
+    htmlPluginArray.push(
+      new HtmlWebpackPlugin(
+        Object.assign(
+          commonConfig,
+          {
+            template: resolve('config/template.ejs'),
+            filename: `./${name}/index.html`,
+            chunks: ['runtime', name, 'common']
+          },
+          articles[name]
         )
       )
-    } else {
-      htmlPluginArray.push(
-        new HtmlWebpackPlugin(
-          Object.assign(
-            defaultConfig,
-            {
-              template: resolve('config/template.ejs')
-            },
-            htmlOptions[name]
-          )
-        )
-      )
-    }
+    )
   })
 
   return { entryMap, htmlPluginArray }
