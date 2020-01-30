@@ -83,7 +83,7 @@ const mergeString = (parentVal, childVal, article) => {
   return parentVal.replace('__article__', article)
 }
 
-;[('links', 'scripts', 'cards', 'buttons')].forEach(name => {
+;['links', 'scripts', 'cards', 'buttons'].forEach(name => {
   strats[name] = mergeArr
 })
 ;['examplePath', 'docsPath'].forEach(name => {
