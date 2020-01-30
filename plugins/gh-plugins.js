@@ -118,11 +118,13 @@ GhPlugins.prototype.addGhContent = function(data, cb) {
     })
   }
   // 替换 ejs 模板中的文档
-  if (options.docsPath) {
-    const docStr = fs.readFileSync(
-      path.resolve(__dirname, '../', options.docsPath),
-      'utf-8'
-    )
+  const absDocsPath = path.resolve(
+    __dirname,
+    '../',
+    options.docsPath || '.non_existent_path' /* 任何不存在的路径 */
+  )
+  if (fs.existsSync(absDocsPath)) {
+    const docStr = fs.readFileSync(absDocsPath, 'utf-8')
     const form = {
       text: docStr,
       mode: 'markdown'
