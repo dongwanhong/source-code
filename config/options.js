@@ -59,7 +59,7 @@ const defaultStrat = (parentVal, childVal) => {
   return childVal === undefined ? parentVal : childVal
 }
 const mergeArr = (parentVal, childVal) => {
-  if (!childVal && typeof childVal === 'object' && childVal.__reset__) {
+  if (childVal && typeof childVal === 'object' && childVal.__reset__) {
     // 提供直接覆盖的机会 { __reset__: true, value: options }
     return childVal.value
   }
