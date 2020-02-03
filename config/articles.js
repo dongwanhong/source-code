@@ -30,5 +30,18 @@ module.exports = {
         path: 'docs/redux/core.js'
       }
     ]
+  },
+  vuex: {
+    title: '从零开始，Vuex 从理解到实现',
+    links: {
+      __reset__: true,
+      value: []
+    },
+    scripts: [
+      {
+        type: 'text/javascript',
+        src: 'https://cdn.bootcss.com/vue/2.6.10/vue.min.js'
+      }
+    ]
   }
 }

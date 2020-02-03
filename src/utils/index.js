@@ -12,6 +12,31 @@ export default new (class {
   isFunction(value) {
     return Object.prototype.toString.call(value) === '[object Function]'
   }
+
+  /**
+   * @public
+   * @method
+   * @name isPromise
+   * @description 判断传入的值是否是一个 Promise
+   * @param {*} val 需要检测的值
+   * @returns {boolean}
+   */
+  isPromise(val) {
+    return val && typeof val.then === 'function'
+  }
+
+  /**
+   * @public
+   * @method
+   * @name isObject
+   * @description 判断传入的值是否是一个对象
+   * @param {*} obj 需要检测的值
+   * @returns {boolean}
+   */
+  isObject(obj) {
+    return obj !== null && typeof obj === 'object'
+  }
+
   /* ===================================== DOM ===================================== */
 
   /**
@@ -191,5 +216,35 @@ export default new (class {
       },
       eles
     )
+  }
+
+  /* ===================================== OTHERS ===================================== */
+
+  /**
+   * @public
+   * @method
+   * @name forEachValue
+   * @description 遍历对象
+   * @param {*} obj 对象
+   * @param {*} fn 遍历时的处理函数，接受对象的值、键为参数
+   * @returns {void}
+   */
+  forEachValue(obj, fn) {
+    Object.keys(obj).forEach(key => fn(obj[key], key))
+  }
+
+  /**
+   * @public
+   * @method
+   * @name partial
+   * @description 利用闭包保留函数执行时需要的参数
+   * @param {Function} fn 被包装的函数
+   * @param {*} arg 需要保留的参数
+   * @returns {Function} 包装后的函数
+   */
+  partial(fn, arg) {
+    return function partialedFn() {
+      return fn(arg)
+    }
   }
 })()
