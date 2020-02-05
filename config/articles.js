@@ -33,10 +33,12 @@ module.exports = {
   },
   vuex: {
     title: '从零开始，Vuex 从理解到实现',
-    links: {
-      __reset__: true,
-      value: []
-    },
+    cards: [
+      {
+        name: 'JavaScript',
+        path: 'docs/vuex/core.js'
+      }
+    ],
     scripts: [
       {
         type: 'text/javascript',
