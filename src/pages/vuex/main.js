@@ -43,8 +43,8 @@ new Vue({
 
     <br />
     <br />
-    <button @click="syncAdd">syncAdd +10</button>
-    <button @click="asyncAdd">asyncAdd +10</button>
+    <button class="btn button" @click="syncAdd">syncAdd +10</button>
+    <button class="btn button" @click="asyncAdd">asyncAdd +10</button>
   </div>
   `,
   store,
