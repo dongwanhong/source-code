@@ -18,9 +18,10 @@
   <header class="header" data-toggle="tab">
     <% htmlWebpackPlugin.options.buttons.forEach(function(item, index){ %>
       <% if (item) { %>
-        <button value="<%= index %>"><%= item %></button>
+        <button class="button" value="<%= index %>"><%= item %></button>
       <% } %>
     <% }); %>
+    <a class="button" href="../list">返回</a>
   </header>
   <main role="main">
     <div class="tab-content">

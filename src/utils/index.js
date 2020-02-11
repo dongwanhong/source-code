@@ -43,24 +43,26 @@ export default new (class {
    * @public
    * @method
    * @name $
-   * @description 获取文档中与指定选择器或选择器组匹配的第一个 HTML 元素
+   * @description 获取指定元素/文档中与指定选择器或选择器组匹配的第一个 HTML 元素
    * @param {string} selectors 包含一个或多个要匹配的选择器的 DOM 字符串
+   * @param {Element} baseElement 可选的，指定的基础元素
    * @returns {Element | null} 如果找不到匹配项，则返回 null，否则返回对应的 Element
    */
-  $(selectors) {
-    return document.querySelector(selectors)
+  $(selectors, baseElement = document) {
+    return baseElement.querySelector(selectors)
   }
 
   /**
    * @public
    * @method
    * @name $$
-   * @description 获取返回与指定的选择器组匹配的文档中的元素列表
+   * @description 获取返回与指定的选择器组匹配的指定元素/文档中的元素列表
    * @param {string} selectors 包含一个或多个要匹配的选择器的 DOM 字符串
+   * @param {Element} baseElement 可选的，指定的基础元素
    * @returns {NodeList} 在没有匹配的情况下依然返回空 NodeList
    */
-  $$(selectors) {
-    return document.querySelectorAll(selectors)
+  $$(selectors, baseElement = document) {
+    return baseElement.querySelectorAll(selectors)
   }
 
   /**
@@ -160,10 +162,25 @@ export default new (class {
     if (!ele) {
       return
     }
+
+    // 高亮当前按钮
+    const setActive = (index = 0) => {
+      const buttons = this.$$('button[value]', ele)
+      const len = buttons.length
+
+      for (let i = 0; i < len; i++) {
+        buttons[i].classList.remove('active')
+      }
+      buttons[index].classList.add('active')
+    }
+
     this.bindEvents(
       'click',
       e => {
         if (e.target === e.currentTarget) {
+          return
+        }
+        if (!e.target.hasAttribute('value')) {
           return
         }
 
@@ -173,11 +190,13 @@ export default new (class {
           if (index === +e.target.value) {
             oEle.classList.add('show')
             setTimeout(() => oEle.classList.add('fade'), 100) // 异步避开渲染优化（合并渲染）
+            setActive(index)
           }
         })
       },
       ele
     )
+    setActive()
   }
 
   /**

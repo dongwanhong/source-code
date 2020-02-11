@@ -44,12 +44,66 @@ a {
   height: 100px;
   background-color: #f3f3f3;
 
-  button {
+  .button {
+    position: relative;
     width: 100px;
-    background-color: #555;
+    line-height: 40px;
+    color: #000;
+    border: none;
+    background-color: transparent;
+    transform: perspective(1px) translateZ(0);
+    cursor: pointer;
+
+    &::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 100%;
+      bottom: 0;
+      background: #555;
+      height: 4px;
+      transition-property: right;
+      transition-duration: 0.3s;
+      transition-timing-function: ease-out;
+    }
+
+    &::after {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #555;
+      transform: scaleX(0);
+      transform-origin: 0 50%;
+      transition-property: transform;
+      transition-duration: 0.3s;
+      transition-timing-function: ease-out;
+    }
+
+    &:hover {
+
+      &::before {
+        right: 0;
+      }
+    }
+
+    &:focus {
+      outline: none;
+    }
 
     &:not(:first-child) {
       margin-left: 16px;
+    }
+
+    &.active {
+      color: #fff;
+
+      &::after {
+        transform: scaleX(1);
+      }
     }
 
     &.disabled {
