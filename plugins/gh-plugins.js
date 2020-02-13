@@ -4,6 +4,10 @@ const path = require('path')
 const fs = require('fs')
 const rp = require('request-promise')
 const hljs = require('highlight.js')
+const marked = require('marked')
+
+// 是否使用 marked 代替 GitHub 的接口
+const useMarked = true
 
 const headers = {
   'User-Agent':
@@ -68,6 +72,17 @@ GhPlugins.prototype.addGhContent = function(data, cb) {
     const exampleStr = fs.readFileSync(absExamplePath, 'utf-8')
     if (path.extname(options.examplePath) !== '.md') {
       htmlStr = htmlStr.replace(/<%= example %>/, exampleStr)
+    } else if (useMarked) {
+      htmlStr = htmlStr.replace(
+        /<%= example %>/,
+        `<div class="markdown-body">${marked(exampleStr, {
+          gfm: true,
+          langPrefix: 'hljs ',
+          highlight(code) {
+            return hljs.highlightAuto(code).value
+          }
+        })}</div>`
+      )
     } else {
       const form = {
         text: exampleStr,
@@ -100,19 +115,19 @@ GhPlugins.prototype.addGhContent = function(data, cb) {
       let hjsHtml = hljs.highlightAuto(codeStr).value
       switch (path.extname($1)) {
         case '.html':
-          hjsHtml = `<pre><code class="html">${hjsHtml}</code></pre>`
+          hjsHtml = `<pre><code class="hljs html">${hjsHtml}</code></pre>`
           break
         case '.css':
-          hjsHtml = `<pre><code class="css">${hjsHtml}</code></pre>`
+          hjsHtml = `<pre><code class="hljs css">${hjsHtml}</code></pre>`
           break
         case '.less':
-          hjsHtml = `<pre><code class="less">${hjsHtml}</code></pre>`
+          hjsHtml = `<pre><code class="hljs less">${hjsHtml}</code></pre>`
           break
         case '.js':
-          hjsHtml = `<pre><code class="javascript ">${hjsHtml}</code></pre>`
+          hjsHtml = `<pre><code class="hljs javascript ">${hjsHtml}</code></pre>`
           break
         default:
-          hjsHtml = `<pre><code class="plaintext">${hjsHtml}</code></pre>`
+          hjsHtml = `<pre><code class="hljs plaintext">${hjsHtml}</code></pre>`
       }
       return hjsHtml
     })
@@ -125,20 +140,33 @@ GhPlugins.prototype.addGhContent = function(data, cb) {
   )
   if (fs.existsSync(absDocsPath)) {
     const docStr = fs.readFileSync(absDocsPath, 'utf-8')
-    const form = {
-      text: docStr,
-      mode: 'markdown'
+    if (useMarked) {
+      htmlStr = htmlStr.replace(
+        /<%= documents %>/,
+        marked(docStr, {
+          gfm: true,
+          langPrefix: 'hljs ',
+          highlight(code) {
+            return hljs.highlightAuto(code).value
+          }
+        })
+      )
+    } else {
+      const form = {
+        text: docStr,
+        mode: 'markdown'
+      }
+      const p = rp({
+        method: 'post',
+        url: 'https://api.github.com/markdown',
+        headers,
+        json: true,
+        body: form
+      }).then(body => {
+        htmlStr = htmlStr.replace(/<%= documents %>/, body)
+      })
+      promises.push(p)
     }
-    const p = rp({
-      method: 'post',
-      url: 'https://api.github.com/markdown',
-      headers,
-      json: true,
-      body: form
-    }).then(body => {
-      htmlStr = htmlStr.replace(/<%= documents %>/, body)
-    })
-    promises.push(p)
   } else {
     htmlStr = htmlStr.replace(/<%= documents %>/, '')
   }
