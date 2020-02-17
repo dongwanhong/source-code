@@ -1,38 +1,7 @@
-html,
-body {
-  height: 100%;
-}
+@import '../../styles/index-list.less';
 
 body {
-  display: flex;
-  flex-direction: column;
-  background-color: #333;
   color: #fff;
-}
-
-header {
-  display: flex;
-  flex: 0;
-  justify-content: space-around;
-  margin: auto;
-  padding: 0.25rem 0;
-  width: 80%;
-  height: 3rem;
-  line-height: 3rem;
-
-  .brand {
-    color: #fff;
-    font-size: 1.5rem;
-    font-weight: 600;
-  }
-
-  nav {
-
-    a {
-      font-size: 1.25rem;
-      color: #fff;
-    }
-  }
 }
 
 main {
@@ -93,7 +62,6 @@ main {
           display: inline-block;
           position: relative;
           transition: 0.5s;
-          cursor: pointer;
 
           &::after {
             content: '»';
@@ -123,11 +91,7 @@ main {
 }
 
 footer {
-  flex: 0;
   margin-top: 3rem;
-  padding: 1rem;
-  text-align: center;
-  color: #7b7b7b;
 }
 
 // Small devices (landscape phones, less than 768px)

@@ -1,0 +1,61 @@
+// 首页和列表页面的公用样式（头部和尾部）
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  background-color: #333;
+}
+
+header {
+  display: flex;
+  flex: 0;
+  justify-content: space-around;
+  margin: auto;
+  width: 80%;
+  height: 5rem;
+  line-height: 5rem;
+
+  .brand {
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+
+  nav {
+
+    a {
+      font-size: 1.25rem;
+      color: #fff;
+
+      &:hover {
+        text-decoration: none;
+      }
+
+      svg {
+        vertical-align: text-top;
+      }
+    }
+  }
+}
+
+button {
+  cursor: pointer;
+}
+
+footer {
+  flex: 0;
+  padding: 1rem;
+  text-align: center;
+  color: #7b7b7b;
+}
