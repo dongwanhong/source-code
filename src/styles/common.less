@@ -10,6 +10,15 @@ html {
   overflow-y: scroll;
 }
 
+body {
+  color: #ccc;
+  background: #333;
+
+  .markdown-body {
+    color: #ccc;
+  }
+}
+
 ::-webkit-scrollbar {
   display: none;
 }
@@ -46,13 +55,13 @@ a {
   justify-content: center;
   padding: 30px;
   height: 100px;
-  background-color: #f3f3f3;
+  background-color: #3a3a3a;
 
   .button {
     position: relative;
     width: 100px;
     line-height: 40px;
-    color: #000;
+    color: #b9b9b9;
     border: none;
     background-color: transparent;
     transform: perspective(1px) translateZ(0);
@@ -64,7 +73,7 @@ a {
       left: 0;
       right: 100%;
       bottom: 0;
-      background: #555;
+      background: #e2e2e2;
       height: 4px;
       transition-property: right;
       transition-duration: 0.3s;
@@ -79,19 +88,12 @@ a {
       left: 0;
       right: 0;
       bottom: 0;
-      background: #555;
+      background: #e2e2e2;
       transform: scaleX(0);
       transform-origin: 0 50%;
       transition-property: transform;
       transition-duration: 0.3s;
       transition-timing-function: ease-out;
-    }
-
-    &:hover {
-
-      &::before {
-        right: 0;
-      }
     }
 
     &:focus {
@@ -102,8 +104,18 @@ a {
       margin-left: 16px;
     }
 
+    &:hover {
+
+      &:not(.disabled) {
+
+        &::before {
+          right: 0;
+        }
+      }
+    }
+
     &.active {
-      color: #fff;
+      color: #000;
 
       &::after {
         transform: scaleX(1);
@@ -113,6 +125,7 @@ a {
     &.disabled {
       color: #b7b7b7;
       background-color: #91969a;
+      cursor: not-allowed;
     }
   }
 }
@@ -137,7 +150,7 @@ a {
   }
 
   .card {
-    border: 1px solid rgba(0, 0, 0, 0.125);
+    border: 1px solid rgba(255, 255, 255, 0.125);
 
     &:not(:first-child) {
       margin-top: 1rem;
@@ -147,8 +160,8 @@ a {
       margin-bottom: 0;
       padding: 0.75rem 1.25rem;
       text-align: center;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.125);
-      background-color: rgba(0, 0, 0, 0.03);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.125);
+      background-color: rgba(255, 255, 255, 0.03);
       cursor: pointer;
     }
 
@@ -164,7 +177,7 @@ a {
   height: 60px;
   line-height: 60px;
   text-align: center;
-  background-color: #f5f5f5;
+  background-color: #3a3a3a;
 
   a {
     color: #7b7b7b;
@@ -201,5 +214,65 @@ a {
 
   .d-md-none {
     display: block !important;
+  }
+}
+
+/* stylelint-disable no-descending-specificity */
+
+body.theme-light {
+  color: #000;
+  background: #fff;
+
+  .markdown-body {
+    color: #000;
+  }
+
+  .button {
+    color: white;
+  }
+
+  .header {
+    background-color: #f3f3f3;
+
+    .button {
+      color: #000;
+
+      &::before {
+        background: #555;
+      }
+
+      &::after {
+        background: #555;
+      }
+
+      &.active {
+        color: #fff;
+      }
+
+      &.disabled {
+        color: #b7b7b7;
+        background-color: #91969a;
+      }
+    }
+  }
+
+  .tab-content {
+
+    .card {
+      border: 1px solid rgba(0, 0, 0, 0.125);
+
+      .card-title {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+        background-color: rgba(0, 0, 0, 0.03);
+      }
+    }
+  }
+
+  .footer {
+    background-color: #f5f5f5;
+
+    a {
+      color: #7b7b7b;
+    }
   }
 }
