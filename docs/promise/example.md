@@ -98,11 +98,11 @@ A：由通过其指定的回调函数的执行结果决定：
 - 否则，返回的 `Promise` 对象的最终状态由 `then` 方法执行决定
 
 ```javascript
-new Promise(resolve => resolve())
+new _Promise(resolve => resolve())
   .then(
     // then 返回的 Promise 的状态将由下面箭头函数返回的 Promise 决定
     () =>
-      new Promise((resolve, reject) => {
+      new _Promise((resolve, reject) => {
         setTimeout(() => {
           if (Math.random() > 0.5) {
             resolve(0)

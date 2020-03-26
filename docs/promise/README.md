@@ -350,7 +350,7 @@ new _Promise((resolve, reject) => {
 class _Promise {
   // ...
   then(onResolved, onRejected) {
-    return new Promise((resolve, reject) => {
+    return new _Promise((resolve, reject) => {
       if (this.$$status === PENDING) {
         this.$$callbacks.push({ onResolved, onRejected })
       } else if (this.$$status === FULFILLED) {
@@ -379,7 +379,7 @@ class _Promise {
 class _Promise {
   // ...
   then(onResolved, onRejected) {
-    return new Promise((resolve, reject) => {
+    return new _Promise((resolve, reject) => {
       if (this.$$status === PENDING) {
         // ...
       } else if (this.$$status === FULFILLED) {
@@ -420,7 +420,7 @@ class _Promise {
 class _Promise {
   // ...
   then(onResolved, onRejected) {
-    return new Promise((resolve, reject) => {
+    return new _Promise((resolve, reject) => {
       if (this.$$status === PENDING) {
         this.$$callbacks.push({
           onResolved: () => {
