@@ -55,17 +55,17 @@ Vue.use = function(plugin) {
 
 注册成功后，将插件推入已注册的队列中，然后返回 `Vue` 的实例。
 
-**注意：**需要在调用 `new Vue()` 启动应用之前完成插件的注册。
+**注意**：需要在调用 `new Vue()` 启动应用之前完成插件的注册。
 
 ## beforeCreate
 
 接下来，如何才能在所有的组件中访问到仓库呢？
 
-在 `Vue` 和子组件初始化时，会将开发者提供的配置项和已有的配置进行合并，然后绑定在实例的 `$options` 属性上，并在 `patch` 的过程中，为其添加 `parent` 属性和 `$children` 属性来建立组件间的父子关系。
+在 `Vue` 和子组件初始化时，会将开发者提供的配置项和已有的配置进行合并，然后绑定在实例的 `$options` 属性上，并在 `patch` 的过程中，为其添加 `$parent` 属性和 `$children` 属性来建立组件间的父子关系。
 
 当然，在合并以及 `patch` 过程中会有许多细节和差异，重要的是在实例化 `Vue` 时我们传递了仓库 `store` 作为配置项，所以在根组件中通过 `this.$options.store` 就可以拿到我们的仓库。
 
-进一步在根组件的子组件中，我们只需要通过 `this.$options.parent.$options.store` 就可以取到仓库。同理，所有的子孙组件都可以按照同理的方式拿到仓库。
+进一步在根组件的子组件中，我们只需要通过 `this.$options.$parent.$options.store` 就可以取到仓库。同理，所有的子孙组件都可以按照同理的方式拿到仓库。
 
 对于一个项目来说，组件嵌套很深，所以会使得整个获取链变得丑陋且难以维护。为此，我们在取得仓库时，就可以把仓库绑定到当前实例中，然后其子组件就可以在父组件上进行获取。
 
@@ -78,8 +78,8 @@ beforeCreate() {
   if (options.store) {
     // 根组件
     this.$store = options.store
-  } else if (options.parent && options.parent.$store) {
-    this.$store = options.parent.$store
+  } else if (options.$parent && options.$parent.$store) {
+    this.$store = options.$parent.$store
   }
 }
 ```
